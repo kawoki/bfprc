@@ -158,31 +158,35 @@ const faqs = [
 
 const images = [
     {
-        src: 'https://bfprc.test/images/487876466_1186490743487231_2201657462862852467_n.jpg',
+        src: window.location.origin + '/images/487876466_1186490743487231_2201657462862852467_n.jpg',
         alt: "Best Friend's Place",
         rotate: 'rotate-2',
     },
     {
-        src: 'https://bfprc.test/images/488224100_1186490763487229_2541621610971133649_n.jpg',
+        src: window.location.origin + '/images/488224100_1186490763487229_2541621610971133649_n.jpg',
         alt: "Best Friend's Place",
         rotate: '-rotate-2',
     },
     {
-        src: 'https://bfprc.test/images/488261162_1186490873487218_49861580757555519_n.jpg',
+        src: window.location.origin + '/images/488261162_1186490873487218_49861580757555519_n.jpg',
         alt: "Best Friend's Place",
         rotate: 'rotate-2',
     },
     {
-        src: 'https://bfprc.test/images/488416318_1188256769977295_3778074623167911703_n.jpg',
+        src: window.location.origin + '/images/488416318_1188256769977295_3778074623167911703_n.jpg',
         alt: "Best Friend's Place",
         rotate: '-rotate-2',
     },
     {
-        src: 'https://bfprc.test/images/488480336_1186490806820558_990026490159606909_n.jpg',
+        src: window.location.origin + '/images/488480336_1186490806820558_990026490159606909_n.jpg',
         alt: "Best Friend's Place",
         rotate: 'rotate-2',
     },
 ];
+
+const getTestimonialImage = () => {
+    return window.location.origin + '/images/481017931_1141020977757241_527510041159602282_n.jpg';
+};
 </script>
 
 <template>
@@ -317,7 +321,7 @@ const images = [
                         <div class="relative aspect-[2/1] h-full md:-mx-8 xl:mx-0 xl:aspect-auto">
                             <img
                                 class="absolute inset-0 size-full rounded-2xl bg-gray-800 object-cover shadow-2xl"
-                                src="https://bfprc.test/images/481017931_1141020977757241_527510041159602282_n.jpg"
+                                :src="getTestimonialImage()"
                                 alt=""
                             />
                         </div>
