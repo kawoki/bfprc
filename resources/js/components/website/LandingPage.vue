@@ -112,46 +112,31 @@ const features = [
     { name: 'All-Day Unlimited', list: ['Friend Chicken (Unli Rice / Drinks)'] },
 ];
 
-const tiers = [
-    {
-        name: 'Freelancer',
-        id: 'tier-freelancer',
-        href: '#',
-        priceMonthly: '$19',
-        description: 'The essentials to provide your best work for clients.',
-        features: ['5 products', 'Up to 1,000 subscribers', 'Basic analytics', '48-hour support response time'],
-        mostPopular: false,
-    },
-    {
-        name: 'Startup',
-        id: 'tier-startup',
-        href: '#',
-        priceMonthly: '$49',
-        description: 'A plan that scales with your rapidly growing business.',
-        features: ['25 products', 'Up to 10,000 subscribers', 'Advanced analytics', '24-hour support response time', 'Marketing automations'],
-        mostPopular: true,
-    },
-    {
-        name: 'Enterprise',
-        id: 'tier-enterprise',
-        href: '#',
-        priceMonthly: '$99',
-        description: 'Dedicated support and infrastructure for your company.',
-        features: [
-            'Unlimited products',
-            'Unlimited subscribers',
-            'Advanced analytics',
-            '1-hour, dedicated support response time',
-            'Marketing automations',
-        ],
-        mostPopular: false,
-    },
-];
 const faqs = [
     {
         id: 1,
-        question: "What's the best thing about Switzerland?",
-        answer: "I don't know, but the flag is a big plus. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas cupiditate laboriosam fugiat.",
+        question: "What's the best thing about Best Friend's Place?",
+        answer: 'We have a wide range of delicious food for every taste.',
+    },
+    {
+        id: 2,
+        question: 'Do you offer all-day meals?',
+        answer: 'Yes! We serve All-Day Meryenda, All-Day Breakfast, and All-Day Unlimited Fried Chicken with unlimited rice and drinks',
+    },
+    {
+        id: 3,
+        question: 'Can I book a table in advance?',
+        answer: 'Yes, table reservations are accepted. Please contact us via phone, Facebook, or in-store to book your table, especially for group dining or special occasions. You can also book your table online.',
+    },
+    {
+        id: 4,
+        question: 'Do you offer catering services?',
+        answer: 'Yes, we do! We provide catering services for parties, meetings, and events. Packages can be customized based on your needs. Contact us directly to discuss your event and get a quotation. You can also book your catering online.',
+    },
+    {
+        id: 5,
+        question: 'Do you have a parking space?',
+        answer: 'Yes, we have a parking space for our customers. It is located infront of the restaurant.',
     },
     // More questions...
 ];

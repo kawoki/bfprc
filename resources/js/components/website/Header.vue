@@ -6,11 +6,15 @@ import { ref } from 'vue';
 const mobileMenuOpen = ref(false);
 
 const navigation = [
-    { name: 'Product', href: '#' },
-    { name: 'Features', href: '#' },
-    { name: 'Marketplace', href: '#' },
-    { name: 'Company', href: '#' },
+    { name: 'Booking', href: '#' },
+    { name: 'Menu', href: '#' },
+    { name: 'Catering', href: '#' },
+    { name: 'Contact Us', href: '#' },
 ];
+
+const getLogo = () => {
+    return window.location.origin + '/images/logo.jpg';
+};
 </script>
 
 <template>
@@ -19,7 +23,7 @@ const navigation = [
             <div class="flex lg:flex-1">
                 <a href="#" class="-m-1.5 p-1.5">
                     <span class="sr-only">Your Company</span>
-                    <img class="h-8 w-auto" src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" alt="" />
+                    <img class="h-8 w-auto rounded-md" :src="getLogo()" alt="" />
                 </a>
             </div>
             <div class="flex lg:hidden">
@@ -36,7 +40,7 @@ const navigation = [
                 <a v-for="item in navigation" :key="item.name" :href="item.href" class="text-sm/6 font-semibold text-gray-900">{{ item.name }}</a>
             </div>
             <div class="hidden lg:flex lg:flex-1 lg:justify-end">
-                <a href="#" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+                <!-- <a href="#" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a> -->
             </div>
         </nav>
         <Dialog class="lg:hidden" @close="mobileMenuOpen = false" :open="mobileMenuOpen">
