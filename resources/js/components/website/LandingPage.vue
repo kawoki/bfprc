@@ -1,116 +1,18 @@
 <script setup lang="ts">
+import { MenuCategory } from '@/types';
 import { CheckIcon } from '@heroicons/vue/20/solid';
+import { computed } from 'vue';
 
-const features = [
-    {
-        name: 'Main Course',
-        list: [
-            'Fried Chicken',
-            'Chicken Adobo',
-            'Chicken Curry',
-            'Tinolang Manok',
-            'Pork Adobo',
-            'Prok Sinigang',
-            'Pork Menudo',
-            'Shrimp Sinigang',
-            'Garlic Shrimp',
-            'Letchon Kawali',
-            'Lumpiang Shanghai',
-            'Sisig',
-            'Chopsuey',
-        ],
-    },
-    {
-        name: 'All-Day Meryenda',
-        list: [
-            'Pansit Palabok',
-            ' Special Batchoy',
-            'Bihon Batchoy',
-            'Sotanghon Batchoy',
-            'Burger',
-            'Fries',
-            'Spaghetti',
-            'Carbonara',
-            'Cheese Sticks',
-        ],
-    },
-    { name: 'All-Day Breakfeat', list: ['Tapsilog', 'Hotsilog', 'Cornsilog', 'Longsilog', 'Spamsilog', 'Nugetsilog', 'Shans Silog'] },
-    {
-        name: 'Combo Meryenda',
-        list: [
-            'Burger w/ Fries',
-            'Hunggarian Sausage w/ Fries',
-            'Angus Beef Burger w/ Fries',
-            'Fish and Fries',
-            'Happydog w/ Fries',
-            'Spaghetti w/ Fries',
-            'Carbonara w/ Hash Brown',
-        ],
-    },
-    {
-        name: 'Solo Meal Combo',
-        list: ['Dinuguan Rice', 'Adobo Chicken Rice', 'Chicken Curry Rice', 'Menudo Rice', 'Bopis Rice', 'Bicol Express Rice'],
-    },
-    {
-        name: 'Short Order',
-        list: ['Sotanghon Guisado', 'Canton Special', 'Bihon Special', 'Bam-e', 'Lomi', 'Pansit Palabok'],
-    },
-    { name: 'Rice', list: ['Platter Plain Rice', 'Platter Garlic Rice', 'Plain Rice Cup', 'Garlic Rice Cup'] },
-    { name: 'Coffee', list: ['Regular Black Coffee', 'Double Latte', 'Strawberry Latte', 'Caramel Latte', 'Mocha Latte'] },
-    {
-        name: 'Shakes',
-        list: [
-            'Dragon Fruit',
-            'Mango',
-            'Banana',
-            'Banana w/ Peanut',
-            'Buko',
-            'Buko w/ Peanut',
-            'Avocado',
-            'Vanilla',
-            'Chocolate',
-            'Strawberry',
-            'Papaya',
-        ],
-    },
-    { name: 'Frappe', list: ['Chocolate', 'Strawberry', 'Vanilla', 'Red Velvet', 'Cookies n Cream', 'Mango Cheesecake'] },
-    {
-        name: 'Milktea',
-        list: [
-            'Taro',
-            'Caramel Sugar',
-            'Cookies n Cream',
-            'Wintermelon',
-            'Red Velvet',
-            'Black Forest',
-            'Dark Chocolate',
-            'Okinawa',
-            'Matcha',
-            'Hazelnut',
-            'Mango Cheesecake',
-            'Hokaido',
-        ],
-    },
-    {
-        name: 'Beverages',
-        list: [
-            'Ice Tea',
-            'Pineapple Juice',
-            'Blue Lemonade',
-            'Pink Lemonade',
-            'Coke',
-            'Coke Float',
-            'Pitcher Juice',
-            'Jar Juice',
-            '',
-            'Bucket Beer Mix',
-            'San Mig Light',
-            'Red Horse',
-            'Palesin',
-        ],
-    },
-    { name: 'All-Day Unlimited', list: ['Friend Chicken (Unli Rice / Drinks)'] },
-];
+const props = defineProps<{
+    menuCategories: MenuCategory[];
+}>();
+
+const features = computed(() => {
+    return props.menuCategories.map((category) => ({
+        name: category.name,
+        list: category.menus.map((menu) => menu.name),
+    }));
+});
 
 const faqs = [
     {
@@ -211,7 +113,7 @@ const getTestimonialImage = () => {
                         <p class="mt-8 text-lg font-medium text-pretty text-gray-500 sm:text-xl/8">"Where cravings are satisfied"</p>
                         <div class="mt-10 flex items-center justify-center gap-x-6">
                             <a
-                                href="#"
+                                href="/booking"
                                 class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                                 >Start booking now</a
                             >
@@ -384,7 +286,7 @@ const getTestimonialImage = () => {
                             We have a limited number of tables available for walk-ins only so book ahead of time.
                         </p>
                         <a
-                            href="#"
+                            href="/booking"
                             class="mt-4 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         >
                             Book now ->
@@ -396,7 +298,7 @@ const getTestimonialImage = () => {
                             We offer catering services for events and parties. We can cater to your needs and preferences.
                         </p>
                         <a
-                            href="#"
+                            href="/booking"
                             class="mt-4 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         >
                             Book Catering ->

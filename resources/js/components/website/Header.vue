@@ -6,7 +6,7 @@ import { ref } from 'vue';
 const mobileMenuOpen = ref(false);
 
 const navigation = [
-    { name: 'Booking', href: '#' },
+    { name: 'Booking', href: '/booking' },
     { name: 'Menu', href: '#' },
     { name: 'Catering', href: '#' },
     { name: 'Contact Us', href: '#' },

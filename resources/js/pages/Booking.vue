@@ -1,17 +1,12 @@
 <script setup lang="ts">
+import BookingPage from '@/components/website/BookingPage.vue';
 import Footer from '@/components/website/Footer.vue';
 import Header from '@/components/website/Header.vue';
-import LandingPage from '@/components/website/LandingPage.vue';
-import { MenuCategory } from '@/types';
 import { Head } from '@inertiajs/vue3';
-
-const props = defineProps<{
-    menuCategories: MenuCategory[];
-}>();
 </script>
 
 <template>
-    <Head title="Welcome">
+    <Head title="Booking">
         <link rel="preconnect" href="https://rsms.me/" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
@@ -19,7 +14,7 @@ const props = defineProps<{
         <!-- Header -->
         <Header />
 
-        <LandingPage :menu-categories="menuCategories" />
+        <BookingPage />
 
         <Footer />
     </div>

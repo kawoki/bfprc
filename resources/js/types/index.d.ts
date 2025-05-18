@@ -37,3 +37,17 @@ export interface User {
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;
+
+export interface MenuCategory {
+    id: number;
+    name: string;
+    description: string;
+    menus: Menu[];
+}
+
+export interface Menu {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+}
