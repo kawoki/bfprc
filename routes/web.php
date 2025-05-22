@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingController;
 use App\Models\MenuCategory;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -12,13 +13,10 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/booking', function () {
-    $menuCategories = MenuCategory::with('menus')->get();
+Route::get('/booking', [BookingController::class, 'create'])->name('booking.create');
+Route::post('/booking', [BookingController::class, 'store'])->name('bookings.store');
 
-    return Inertia::render('Booking', [
-        'menuCategories' => $menuCategories,
-    ]);
-})->name('booking');
+Route::get('/bookings/available-times', [BookingController::class, 'getAvailableTimes'])->name('bookings.available-times');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');

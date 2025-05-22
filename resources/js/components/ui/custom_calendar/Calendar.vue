@@ -5,12 +5,34 @@ import { CalendarRoot, type CalendarRootEmits, type CalendarRootProps, useForwar
 import { cn } from '@/lib/utils'
 import { CalendarCell, CalendarCellTrigger, CalendarGrid, CalendarGridBody, CalendarGridHead, CalendarGridRow, CalendarHeadCell, CalendarHeader, CalendarHeading, CalendarNextButton, CalendarPrevButton } from '.'
 
-const props = defineProps<CalendarRootProps & { class?: HTMLAttributes['class'] }>()
+const props = defineProps<CalendarRootProps & { 
+    class?: HTMLAttributes['class']
+    min?: string
+    'disabled-dates'?: (date: Date) => boolean
+}>()
+
 const emits = defineEmits<CalendarRootEmits>()
 
-const delegatedProps = reactiveOmit(props, 'class')
+const delegatedProps = reactiveOmit(props, 'class', 'min', 'disabled-dates')
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
+
+// Add function to check if a date should be disabled
+const isDateDisabled = (date: Date) => {
+    if (props.min) {
+        const minDate = new Date(props.min);
+        minDate.setHours(0, 0, 0, 0);
+        const currentDate = new Date(date);
+        currentDate.setHours(0, 0, 0, 0);
+        if (currentDate < minDate) return true;
+    }
+    
+    if (props['disabled-dates']) {
+        return props['disabled-dates'](date);
+    }
+    
+    return false;
+};
 </script>
 
 <template>
@@ -34,7 +56,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
         <CalendarGridHead>
           <CalendarGridRow>
             <CalendarHeadCell
-              v-for="day in weekDays" :key="day"
+              v-for="day in weekDays" 
+              :key="day"
               class="w-full"
             >
               {{ day }}
@@ -42,16 +65,22 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
           </CalendarGridRow>
         </CalendarGridHead>
         <CalendarGridBody>
-          <CalendarGridRow v-for="(weekDates, index) in month.rows" :key="`weekDate-${index}`" class="mt-2 w-full">
+          <CalendarGridRow 
+            v-for="(weekDates, index) in month.rows" 
+            :key="`weekDate-${index}`" 
+            class="mt-2 w-full"
+          >
             <CalendarCell
               v-for="weekDate in weekDates"
               :key="weekDate.toString()"
               :date="weekDate"
               class="grow"
+              :disabled="isDateDisabled(weekDate)"
             >
               <CalendarCellTrigger
                 :day="weekDate"
                 :month="month.value"
+                :disabled="isDateDisabled(weekDate)"
               />
             </CalendarCell>
           </CalendarGridRow>
@@ -60,3 +89,11 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     </div>
   </CalendarRoot>
 </template>
+
+<style scoped>
+.calendar-cell[data-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+</style>

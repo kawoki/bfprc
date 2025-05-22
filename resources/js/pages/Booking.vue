@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Toaster } from '@/components/ui/sonner';
 import BookingPage from '@/components/website/BookingPage.vue';
 import Footer from '@/components/website/Footer.vue';
 import Header from '@/components/website/Header.vue';
@@ -18,4 +19,5 @@ import { Head } from '@inertiajs/vue3';
 
         <Footer />
     </div>
+    <Toaster richColors />
 </template>
