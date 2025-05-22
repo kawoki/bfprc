@@ -140,12 +140,14 @@ const cancelBooking = () => {
             <!-- Header Section -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
-                    <p class="text-sm text-gray-500">View and manage today's restaurant bookings.</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">View and manage today's restaurant bookings.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-500">Last updated:</span>
-                    <span class="text-sm font-medium">{{ new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }) }}</span>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Last updated:</span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{
+                        new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' })
+                    }}</span>
                 </div>
             </div>
 
@@ -155,10 +157,12 @@ const cancelBooking = () => {
             <!-- Stats Grid -->
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <!-- Total Bookings -->
-                <div class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div
+                    class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                >
                     <div class="flex items-center gap-4">
-                        <div class="rounded-lg bg-blue-100 p-3">
-                            <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="rounded-lg bg-blue-100 p-3 dark:bg-blue-900/50">
+                            <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
@@ -168,18 +172,20 @@ const cancelBooking = () => {
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-600">Total Bookings</p>
-                            <p class="text-2xl font-semibold text-gray-900">{{ bookings.length }}</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Total Bookings</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ bookings.length }}</p>
                         </div>
                     </div>
                     <div class="absolute bottom-0 left-0 h-1 w-full bg-blue-500"></div>
                 </div>
 
                 <!-- Confirmed Bookings -->
-                <div class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div
+                    class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                >
                     <div class="flex items-center gap-4">
-                        <div class="rounded-lg bg-green-100 p-3">
-                            <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="rounded-lg bg-green-100 p-3 dark:bg-green-900/50">
+                            <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
@@ -189,8 +195,8 @@ const cancelBooking = () => {
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-600">Confirmed</p>
-                            <p class="text-2xl font-semibold text-gray-900">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Confirmed</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
                                 {{ bookings.filter((b) => b.confirmed_at).length }}
                             </p>
                         </div>
@@ -199,10 +205,12 @@ const cancelBooking = () => {
                 </div>
 
                 <!-- Pending Bookings -->
-                <div class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div
+                    class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                >
                     <div class="flex items-center gap-4">
-                        <div class="rounded-lg bg-yellow-100 p-3">
-                            <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="rounded-lg bg-yellow-100 p-3 dark:bg-yellow-900/50">
+                            <svg class="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
@@ -212,8 +220,8 @@ const cancelBooking = () => {
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-600">Pending</p>
-                            <p class="text-2xl font-semibold text-gray-900">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Pending</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
                                 {{ bookings.filter((b) => !b.confirmed_at && !b.cancelled_at).length }}
                             </p>
                         </div>
@@ -222,16 +230,18 @@ const cancelBooking = () => {
                 </div>
 
                 <!-- Cancelled Bookings -->
-                <div class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div
+                    class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                >
                     <div class="flex items-center gap-4">
-                        <div class="rounded-lg bg-red-100 p-3">
-                            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="rounded-lg bg-red-100 p-3 dark:bg-red-900/50">
+                            <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-600">Cancelled</p>
-                            <p class="text-2xl font-semibold text-gray-900">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Cancelled</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
                                 {{ bookings.filter((b) => b.cancelled_at).length }}
                             </p>
                         </div>
@@ -241,44 +251,46 @@ const cancelBooking = () => {
             </div>
 
             <!-- Bookings Table -->
-            <div class="rounded-xl border bg-white p-6 shadow-sm">
+            <div class="rounded-xl border bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                 <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">All Bookings</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">All Bookings</h2>
                 </div>
-                <div class="overflow-hidden rounded-lg border">
+                <div class="overflow-hidden rounded-lg border dark:border-gray-700">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Contact</TableHead>
-                                <TableHead>Date & Time</TableHead>
-                                <TableHead>Table Size</TableHead>
-                                <TableHead>Menus</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Actions</TableHead>
+                                <TableHead class="dark:text-gray-300">Name</TableHead>
+                                <TableHead class="dark:text-gray-300">Contact</TableHead>
+                                <TableHead class="dark:text-gray-300">Date & Time</TableHead>
+                                <TableHead class="dark:text-gray-300">Table Size</TableHead>
+                                <TableHead class="dark:text-gray-300">Menus</TableHead>
+                                <TableHead class="dark:text-gray-300">Status</TableHead>
+                                <TableHead class="dark:text-gray-300">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="booking in bookings" :key="booking.id">
-                                <TableCell class="font-medium"> {{ booking.firstname }} {{ booking.lastname }} </TableCell>
+                            <TableRow v-for="booking in bookings" :key="booking.id" class="dark:border-gray-700">
+                                <TableCell class="font-medium dark:text-white"> {{ booking.firstname }} {{ booking.lastname }} </TableCell>
                                 <TableCell>
                                     <div class="space-y-1">
-                                        <div class="text-sm">{{ booking.phone_number }}</div>
+                                        <div class="text-sm dark:text-gray-300">{{ booking.phone_number }}</div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <div class="space-y-1">
-                                        <div class="text-sm">{{ formatDate(booking.booking_date) }}</div>
-                                        <div class="text-muted-foreground text-sm">{{ formatTime(booking.booking_time) }}</div>
+                                        <div class="text-sm dark:text-gray-300">{{ formatDate(booking.booking_date) }}</div>
+                                        <div class="text-muted-foreground text-sm dark:text-gray-400">{{ formatTime(booking.booking_time) }}</div>
                                     </div>
                                 </TableCell>
-                                <TableCell> {{ booking.seats }} people </TableCell>
+                                <TableCell class="dark:text-gray-300"> {{ booking.seats }} people </TableCell>
                                 <TableCell>
                                     <div class="space-y-1">
-                                        <div v-for="menu in booking.menus" :key="menu.id" class="text-sm">
+                                        <div v-for="menu in booking.menus" :key="menu.id" class="text-sm dark:text-gray-300">
                                             {{ menu.name }} ({{ menu.pivot.quantity }}x)
                                         </div>
-                                        <div v-if="booking.menus.length === 0" class="text-muted-foreground text-sm">No menus selected</div>
+                                        <div v-if="booking.menus.length === 0" class="text-muted-foreground text-sm dark:text-gray-400">
+                                            No menus selected
+                                        </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -291,7 +303,7 @@ const cancelBooking = () => {
                                         <button
                                             v-if="!booking.confirmed_at && !booking.cancelled_at"
                                             @click="handleConfirm(booking)"
-                                            class="inline-flex items-center justify-center rounded-md bg-green-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none"
+                                            class="inline-flex items-center justify-center rounded-md bg-green-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
                                         >
                                             <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -301,7 +313,7 @@ const cancelBooking = () => {
                                         <button
                                             v-if="!booking.cancelled_at"
                                             @click="handleCancel(booking)"
-                                            class="inline-flex items-center justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
+                                            class="inline-flex items-center justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
                                         >
                                             <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -311,8 +323,10 @@ const cancelBooking = () => {
                                     </div>
                                 </TableCell>
                             </TableRow>
-                            <TableRow v-if="bookings.length === 0">
-                                <TableCell colspan="7" class="text-muted-foreground py-6 text-center"> No bookings found </TableCell>
+                            <TableRow v-if="bookings.length === 0" class="dark:border-gray-700">
+                                <TableCell colspan="7" class="text-muted-foreground py-6 text-center dark:text-gray-400">
+                                    No bookings found
+                                </TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
@@ -324,8 +338,10 @@ const cancelBooking = () => {
     <!-- Confirm Dialog -->
     <AlertDialog v-model:open="showConfirmDialog">
         <AlertDialogContent>
-            <AlertDialogTitle>Confirm Booking</AlertDialogTitle>
-            <AlertDialogDescription> Are you sure you want to confirm this booking? This action cannot be undone. </AlertDialogDescription>
+            <AlertDialogTitle class="dark:text-white">Confirm Booking</AlertDialogTitle>
+            <AlertDialogDescription class="dark:text-gray-300">
+                Are you sure you want to confirm this booking? This action cannot be undone.
+            </AlertDialogDescription>
             <AlertDialogFooter>
                 <AlertDialogCancel @click="showConfirmDialog = false">Cancel</AlertDialogCancel>
                 <AlertDialogAction @click="confirmBooking">Confirm</AlertDialogAction>
@@ -336,8 +352,10 @@ const cancelBooking = () => {
     <!-- Cancel Dialog -->
     <AlertDialog v-model:open="showCancelDialog">
         <AlertDialogContent>
-            <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-            <AlertDialogDescription> Are you sure you want to cancel this booking? This action cannot be undone. </AlertDialogDescription>
+            <AlertDialogTitle class="dark:text-white">Cancel Booking</AlertDialogTitle>
+            <AlertDialogDescription class="dark:text-gray-300">
+                Are you sure you want to cancel this booking? This action cannot be undone.
+            </AlertDialogDescription>
             <AlertDialogFooter>
                 <AlertDialogCancel @click="showCancelDialog = false">No, keep it</AlertDialogCancel>
                 <AlertDialogAction variant="destructive" @click="cancelBooking">Yes, cancel it</AlertDialogAction>
