@@ -144,4 +144,11 @@ class Booking extends Model
 
         return $bookings;
     }
+
+    public function menus()
+    {
+        return $this->belongsToMany(Menu::class, 'booking_menus')
+            ->withPivot('quantity')
+            ->withTimestamps();
+    }
 }

@@ -1,10 +1,20 @@
 <script setup lang="ts">
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { updateTheme } from '@/composables/useAppearance';
+import { MenuCategory } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, ref, watch } from 'vue';
-import { toast } from 'vue-sonner';
+import { toast, Toaster } from 'vue-sonner';
+import 'vue-sonner/style.css';
 import Button from '../ui/button/Button.vue';
 import Calendar from '../ui/custom_calendar/Calendar.vue';
 import { Input } from '../ui/input';
@@ -60,7 +70,12 @@ const isTimeSlotInFuture = (time: string) => {
 const isTableSizeAvailable = (time: string, seats: keyof typeof TABLE_CAPACITY) => {
     if (!isTimeSlotInFuture(time)) return false;
 
-    const timeBookings = bookedTimes.value[time] || {};
+    // Initialize an empty object for the time if it doesn't exist
+    if (!bookedTimes.value[time]) {
+        bookedTimes.value[time] = {};
+    }
+
+    const timeBookings = bookedTimes.value[time];
     const currentBookings = timeBookings[seats] || 0;
     return currentBookings < TABLE_CAPACITY[seats];
 };
@@ -72,6 +87,23 @@ const getAvailableTableSizes = (time: string) => {
     );
 };
 
+const props = defineProps<{
+    menuCategories: MenuCategory[];
+}>();
+
+// Add state for selected menus
+const selectedMenus = ref<Array<{ menu_id: number; quantity: number; name: string }>>([]);
+
+// Add function to handle menu selection
+const handleMenuSelection = (menuId: number, quantity: number, menuName: string) => {
+    const existingMenu = selectedMenus.value.find((m) => m.menu_id === menuId);
+    if (existingMenu) {
+        existingMenu.quantity = quantity;
+    } else {
+        selectedMenus.value.push({ menu_id: menuId, quantity, name: menuName });
+    }
+};
+
 const form = useForm({
     seats: '',
     booking_date: '',
@@ -80,6 +112,7 @@ const form = useForm({
     lastname: '',
     address: '',
     phone_number: '',
+    selected_menus: [] as Array<{ menu_id: number; quantity: number }>,
 });
 
 const selectedDate = ref('');
@@ -158,6 +191,7 @@ const handleSubmit = () => {
     // Set the form values
     form.booking_date = selectedDate.value;
     form.booking_time = selectedTime.value;
+    form.selected_menus = selectedMenus.value;
 
     form.booking_date = new Date(form.booking_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
 
@@ -165,7 +199,6 @@ const handleSubmit = () => {
     form.post(route('bookings.store'), {
         preserveScroll: true,
         onSuccess: () => {
-            console.log('Success');
             toast.success('Success', {
                 description: 'Your booking has been submitted successfully!',
             });
@@ -175,6 +208,7 @@ const handleSubmit = () => {
             selectedDate.value = '';
             selectedTime.value = '';
             bookedTimes.value = {};
+            selectedMenus.value = [];
         },
         onError: (errors) => {
             // Add console.log to debug errors
@@ -197,6 +231,17 @@ const handleSubmit = () => {
         },
     });
 };
+
+const allMenus = computed(() =>
+    props.menuCategories.flatMap((category) =>
+        category.menus.map((menu) => ({
+            ...menu,
+            category: category.name,
+        })),
+    ),
+);
+
+const selectedMenuId = ref<number | null>(null);
 </script>
 
 <template>
@@ -218,6 +263,7 @@ const handleSubmit = () => {
         <div class="mx-auto max-w-xl lg:max-w-4xl">
             <h2 class="text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">Book a reservation</h2>
             <p class="mt-2 text-lg/8 text-gray-600">Book a reservation for your partner, family, or friends ahead of time to avoid waiting.</p>
+
             <div class="mt-16 grid grid-cols-1 gap-16 sm:grid-cols-2 sm:gap-y-20">
                 <div class="col-span-1 flex flex-col gap-y-6">
                     <Calendar
@@ -260,7 +306,7 @@ const handleSubmit = () => {
                                         :disabled="!isTableSizeAvailable(selectedTime, seats as keyof typeof TABLE_CAPACITY)"
                                     >
                                         Table for {{ seats }}
-                                        <span v-if="selectedTime && bookedTimes[selectedTime]?.[seats]" class="text-sm text-gray-500">
+                                        <span v-if="selectedTime && bookedTimes[selectedTime][seats]" class="text-sm text-gray-500">
                                             ({{ bookedTimes[selectedTime][seats] }}/{{ TABLE_CAPACITY[seats as keyof typeof TABLE_CAPACITY] }} booked)
                                         </span>
                                     </SelectItem>
@@ -331,7 +377,43 @@ const handleSubmit = () => {
                                 <p v-if="form.errors.phone_number" class="mt-1 text-sm text-red-500">{{ form.errors.phone_number }}</p>
                             </div>
                         </div>
+
+                        <div class="sm:col-span-2">
+                            <div class="space-y-3">
+                                <label for="phone_number" class="block text-sm/6 font-semibold text-gray-900">Select Menu Items</label>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger class="border-input bg-background w-full rounded-md border px-2 py-1.5 text-left text-sm">
+                                        <div class="flex flex-wrap gap-0.5">
+                                            <template v-if="selectedMenus.length > 0">
+                                                <span v-for="menu in selectedMenus" :key="menu.menu_id" class="rounded-md border px-1.5 py-0.5">{{
+                                                    menu.name
+                                                }}</span>
+                                            </template>
+                                            <template v-else>
+                                                <span class="text-sm text-gray-500">No menu items selected</span>
+                                            </template>
+                                        </div>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent class="h-[300px] w-[350px]">
+                                        <div v-for="category in menuCategories" :key="category.id">
+                                            <DropdownMenuLabel>{{ category.name }}</DropdownMenuLabel>
+                                            <DropdownMenuGroup>
+                                                <DropdownMenuItem
+                                                    v-for="menu in category.menus"
+                                                    :key="menu.id"
+                                                    class="flex items-center justify-between"
+                                                    @click="handleMenuSelection(menu.id, 1, menu.name)"
+                                                >
+                                                    <span>{{ menu.name }}</span>
+                                                </DropdownMenuItem>
+                                            </DropdownMenuGroup>
+                                        </div>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="mt-10">
                         <Button
                             type="submit"
@@ -342,6 +424,7 @@ const handleSubmit = () => {
                             <span v-else>Book a reservation</span>
                         </Button>
                     </div>
+
                     <p class="mt-4 text-sm/6 text-gray-500">
                         By submitting this form, I agree to the <a href="#" class="font-semibold text-indigo-600">privacy&nbsp;policy</a>.
                     </p>
@@ -349,4 +432,5 @@ const handleSubmit = () => {
             </div>
         </div>
     </div>
+    <Toaster richColors />
 </template>
