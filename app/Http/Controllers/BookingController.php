@@ -61,4 +61,78 @@ class BookingController extends Controller
             'bookedTimes' => $bookedTimes,
         ]);
     }
+
+    public function index()
+    {
+        $today = Carbon::now()->startOfDay();
+        $bookings = Booking::with('menus')
+            ->where('booking_date', $today->format('Y-m-d'))
+            ->orderBy('booking_time')
+            ->get();
+
+        return Inertia::render('Bookings/Index', [
+            'bookings' => $bookings,
+            'title' => "Today's Bookings",
+        ]);
+    }
+
+    public function upcoming()
+    {
+        $today = Carbon::now()->startOfDay();
+        $bookings = Booking::with('menus')
+            ->where('booking_date', '>', $today->format('Y-m-d'))
+            ->orderBy('booking_date')
+            ->orderBy('booking_time')
+            ->get();
+
+        return Inertia::render('Bookings/Index', [
+            'bookings' => $bookings,
+            'title' => 'Upcoming Bookings',
+        ]);
+    }
+
+    public function past()
+    {
+        $today = Carbon::now()->startOfDay();
+        $bookings = Booking::with('menus')
+            ->where('booking_date', '<', $today->format('Y-m-d'))
+            ->orderBy('booking_date', 'desc')
+            ->orderBy('booking_time', 'desc')
+            ->get();
+
+        return Inertia::render('Bookings/Index', [
+            'bookings' => $bookings,
+            'title' => 'Past Bookings',
+        ]);
+    }
+
+    public function confirm(Booking $booking)
+    {
+        if ($booking->cancelled_at) {
+            return back()->with('error', 'Cannot confirm a cancelled booking.');
+        }
+
+        if ($booking->confirmed_at) {
+            return back()->with('error', 'Booking is already confirmed.');
+        }
+
+        $booking->update([
+            'confirmed_at' => now(),
+        ]);
+
+        return back()->with('success', 'Booking confirmed successfully.');
+    }
+
+    public function cancel(Booking $booking)
+    {
+        if ($booking->cancelled_at) {
+            return back()->with('error', 'Booking is already cancelled.');
+        }
+
+        $booking->update([
+            'cancelled_at' => now(),
+        ]);
+
+        return back()->with('success', 'Booking cancelled successfully.');
+    }
 }

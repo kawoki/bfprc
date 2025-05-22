@@ -19,9 +19,16 @@ Route::post('/booking', [BookingController::class, 'store'])->name('bookings.sto
 
 Route::get('/bookings/available-times', [BookingController::class, 'getAvailableTimes'])->name('bookings.available-times');
 
-Route::get('/dashboard', DashboardController::class)
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, '__invoke'])->name('dashboard');
+
+    // Booking routes
+    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/upcoming', [BookingController::class, 'upcoming'])->name('bookings.upcoming');
+    Route::get('/bookings/past', [BookingController::class, 'past'])->name('bookings.past');
+    Route::put('/bookings/{booking}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
+    Route::put('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
