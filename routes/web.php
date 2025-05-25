@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MenuController;
 use App\Models\MenuCategory;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -28,6 +29,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/bookings/past', [BookingController::class, 'past'])->name('bookings.past');
     Route::put('/bookings/{booking}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
     Route::put('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+
+    // Menu Management
+    Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
+    Route::put('/menu/categories/{category}', [MenuController::class, 'updateCategory'])->name('menu.categories.update');
+    Route::put('/menu/items/{menu}', [MenuController::class, 'updateMenuItem'])->name('menu.items.update');
 });
 
 require __DIR__.'/settings.php';
