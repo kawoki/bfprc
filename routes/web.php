@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\OrderController;
 use App\Models\MenuCategory;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,6 +35,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
     Route::put('/menu/categories/{category}', [MenuController::class, 'updateCategory'])->name('menu.categories.update');
     Route::put('/menu/items/{menu}', [MenuController::class, 'updateMenuItem'])->name('menu.items.update');
+
+    // Order routes
+    Route::get('/order', [OrderController::class, 'index'])->name('order.index');
+    Route::post('/order', [OrderController::class, 'store'])->name('order.store');
+    Route::post('/order/{sale}/complete', [OrderController::class, 'complete'])->name('order.complete');
+    Route::post('/order/{sale}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
 });
 
 require __DIR__.'/settings.php';

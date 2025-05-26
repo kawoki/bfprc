@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -17,9 +16,6 @@ class Booking extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'seats',
-        'booking_date',
-        'booking_time',
         'firstname',
         'lastname',
         'address',
@@ -34,29 +30,9 @@ class Booking extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'booking_date' => 'datetime:Y-m-d',
-        'booking_time' => 'datetime:H:i',
         'confirmed_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];
-
-    /**
-     * Validation rules for the booking.
-     *
-     * @return array<string, string>
-     */
-    public static function rules(): array
-    {
-        return [
-            'seats' => 'required|in:2,4,6,8',
-            'booking_date' => 'required|date|after_or_equal:today',
-            'booking_time' => 'required|date_format:H:i',
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'address' => 'required|string',
-            'phone_number' => 'required|string|max:20',
-        ];
-    }
 
     /**
      * Get the full name of the customer.
@@ -123,26 +99,24 @@ class Booking extends Model
     }
 
     /**
-     * Get all booked times for a specific date with seat information
+     * Get all booked times for a specific date with table information
      */
     public static function getBookedTimesForDate(string $date): array
     {
-        $bookings = self::where('booking_date', $date)
-            ->whereNull('cancelled_at')
-            ->get()
-            ->groupBy(function ($booking) {
-                return Carbon::parse($booking->booking_time)->format('H:i');
-            })
-            ->map(function ($timeBookings) {
-                return $timeBookings->groupBy('seats')
-                    ->map(function ($seatBookings) {
-                        return $seatBookings->count();
-                    })
-                    ->toArray();
-            })
-            ->toArray();
+        $bookings = self::whereHas('occupiedTable', function ($query) use ($date) {
+            $query->where('date', $date)
+                ->whereNull('cancelled_at');
+        })->get();
 
-        return $bookings;
+        return $bookings->groupBy(function ($booking) {
+            return $booking->occupiedTable->time;
+        })->map(function ($timeBookings) {
+            return $timeBookings->groupBy(function ($booking) {
+                return $booking->occupiedTable->table_id;
+            })->map(function ($tableBookings) {
+                return $tableBookings->count();
+            })->toArray();
+        })->toArray();
     }
 
     public function menus()
@@ -150,5 +124,10 @@ class Booking extends Model
         return $this->belongsToMany(Menu::class, 'booking_menus')
             ->withPivot('quantity')
             ->withTimestamps();
+    }
+
+    public function occupiedTable()
+    {
+        return $this->morphOne(OccupiedTable::class, 'occupiable');
     }
 }

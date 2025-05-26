@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\MenuCategory;
+use App\Models\Table;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,16 +14,18 @@ class BookingController extends Controller
     public function create()
     {
         $menuCategories = MenuCategory::with('menus')->get();
+        $tables = Table::all();
 
         return Inertia::render('Booking', [
             'menuCategories' => $menuCategories,
+            'tables' => $tables,
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'seats' => 'required|in:2,4,6,8',
+            'table_id' => 'required|exists:tables,id',
             'booking_date' => 'required|date|after_or_equal:today',
             'booking_time' => 'required|date_format:H:i',
             'firstname' => 'required|string|max:255',
@@ -34,10 +37,22 @@ class BookingController extends Controller
             'selected_menus.*.quantity' => 'required|integer|min:1',
         ]);
 
-        $validated['booking_date'] = Carbon::parse($validated['booking_date'])->format('Y-m-d');
-        $validated['booking_time'] = Carbon::parse($validated['booking_time'])->format('H:i');
+        $validated['date'] = Carbon::parse($validated['booking_date'])->format('Y-m-d');
+        $validated['time'] = Carbon::parse($validated['booking_time'])->format('H:i');
 
-        $booking = Booking::create($validated);
+        $booking = Booking::create([
+            'firstname' => $validated['firstname'],
+            'lastname' => $validated['lastname'],
+            'address' => $validated['address'],
+            'phone_number' => $validated['phone_number'],
+        ]);
+
+        // Create occupied table record
+        $booking->occupiedTable()->create([
+            'table_id' => $validated['table_id'],
+            'date' => $validated['date'],
+            'time' => $validated['time'],
+        ]);
 
         // Attach selected menus with quantities
         if (isset($validated['selected_menus'])) {
@@ -65,9 +80,14 @@ class BookingController extends Controller
     public function index()
     {
         $today = Carbon::now()->startOfDay();
-        $bookings = Booking::with('menus')
-            ->where('booking_date', $today->format('Y-m-d'))
-            ->orderBy('booking_time')
+        $bookings = Booking::with(['menus', 'occupiedTable.table'])
+            ->join('occupied_tables', function ($join) use ($today) {
+                $join->on('bookings.id', '=', 'occupied_tables.occupiable_id')
+                    ->where('occupied_tables.occupiable_type', Booking::class)
+                    ->where('occupied_tables.date', $today->format('Y-m-d'));
+            })
+            ->orderBy('occupied_tables.time')
+            ->select('bookings.*')
             ->get();
 
         return Inertia::render('Bookings/Index', [
@@ -79,10 +99,15 @@ class BookingController extends Controller
     public function upcoming()
     {
         $today = Carbon::now()->startOfDay();
-        $bookings = Booking::with('menus')
-            ->where('booking_date', '>', $today->format('Y-m-d'))
-            ->orderBy('booking_date')
-            ->orderBy('booking_time')
+        $bookings = Booking::with(['menus', 'occupiedTable.table'])
+            ->join('occupied_tables', function ($join) use ($today) {
+                $join->on('bookings.id', '=', 'occupied_tables.occupiable_id')
+                    ->where('occupied_tables.occupiable_type', Booking::class)
+                    ->where('occupied_tables.date', '>', $today->format('Y-m-d'));
+            })
+            ->orderBy('occupied_tables.date')
+            ->orderBy('occupied_tables.time')
+            ->select('bookings.*')
             ->get();
 
         return Inertia::render('Bookings/Index', [
@@ -94,10 +119,15 @@ class BookingController extends Controller
     public function past()
     {
         $today = Carbon::now()->startOfDay();
-        $bookings = Booking::with('menus')
-            ->where('booking_date', '<', $today->format('Y-m-d'))
-            ->orderBy('booking_date', 'desc')
-            ->orderBy('booking_time', 'desc')
+        $bookings = Booking::with(['menus', 'occupiedTable.table'])
+            ->join('occupied_tables', function ($join) use ($today) {
+                $join->on('bookings.id', '=', 'occupied_tables.occupiable_id')
+                    ->where('occupied_tables.occupiable_type', Booking::class)
+                    ->where('occupied_tables.date', '<', $today->format('Y-m-d'));
+            })
+            ->orderByDesc('occupied_tables.date')
+            ->orderByDesc('occupied_tables.time')
+            ->select('bookings.*')
             ->get();
 
         return Inertia::render('Bookings/Index', [
@@ -132,6 +162,9 @@ class BookingController extends Controller
         $booking->update([
             'cancelled_at' => now(),
         ]);
+
+        // Remove occupied table record
+        $booking->occupiedTable()->delete();
 
         return back()->with('success', 'Booking cancelled successfully.');
     }

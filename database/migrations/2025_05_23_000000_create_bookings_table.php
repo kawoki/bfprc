@@ -13,9 +13,6 @@ return new class extends Migration
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->enum('seats', ['2', '4', '6', '8']);
-            $table->date('booking_date');
-            $table->time('booking_time');
             $table->string('firstname');
             $table->string('lastname');
             $table->text('address');

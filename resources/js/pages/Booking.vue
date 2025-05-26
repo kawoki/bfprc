@@ -2,11 +2,12 @@
 import BookingPage from '@/components/website/BookingPage.vue';
 import Footer from '@/components/website/Footer.vue';
 import Header from '@/components/website/Header.vue';
-import { MenuCategory } from '@/types';
+import { MenuCategory, Table } from '@/types';
 import { Head } from '@inertiajs/vue3';
 
 const props = defineProps<{
     menuCategories: MenuCategory[];
+    tables: Table[];
 }>();
 </script>
 
@@ -19,7 +20,7 @@ const props = defineProps<{
         <!-- Header -->
         <Header />
 
-        <BookingPage :menu-categories="menuCategories" />
+        <BookingPage :menu-categories="menuCategories" :tables="tables" />
 
         <Footer />
     </div>

@@ -45,6 +45,13 @@ export interface MenuCategory {
     menus: Menu[];
 }
 
+export interface Table {
+    id: number;
+    name: string;
+    capacity: number;
+    status: 'available' | 'occupied' | 'reserved';
+}
+
 export interface Menu {
     id: number;
     name: string;

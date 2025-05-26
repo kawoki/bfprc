@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Calendar, LayoutGrid, Utensils } from 'lucide-vue-next';
+import { Calendar, LayoutGrid, ShoppingCart, Utensils } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -23,6 +23,11 @@ const mainNavItems: NavItem[] = [
         title: 'Menu',
         href: '/menu',
         icon: Utensils,
+    },
+    {
+        title: 'Orders',
+        href: '/order',
+        icon: ShoppingCart,
     },
 ];
 

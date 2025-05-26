@@ -27,14 +27,18 @@ interface Menu {
     };
 }
 
+interface OccupiedTable {
+    date: string;
+    time: string;
+    table: { capacity: number } | null;
+}
+
 interface Booking {
     id: number;
     firstname: string;
     lastname: string;
     phone_number: string;
-    booking_date: string;
-    booking_time: string;
-    seats: number;
+    occupied_table?: OccupiedTable | null;
     confirmed_at: string | null;
     cancelled_at: string | null;
     created_at: string;
@@ -75,13 +79,15 @@ const getStatus = (booking: Booking) => {
     return 'Pending';
 };
 
-const formatDate = (date: string) => {
-    const localDate = new Date(date + 'T00:00:00+08:00'); // Add Manila timezone offset
+const formatDate = (date: string | undefined) => {
+    if (!date) return '';
+    const localDate = new Date(date + 'T00:00:00+08:00');
     return format(localDate, 'MMM dd, yyyy');
 };
 
-const formatTime = (time: string) => {
-    const localTime = new Date(`2000-01-01T${time}+08:00`); // Add Manila timezone offset
+const formatTime = (time: string | undefined) => {
+    if (!time) return '';
+    const localTime = new Date(`2000-01-01T${time}+08:00`);
     return format(localTime, 'h:mm a');
 };
 
@@ -278,11 +284,15 @@ const cancelBooking = () => {
                                 </TableCell>
                                 <TableCell>
                                     <div class="space-y-1">
-                                        <div class="text-sm dark:text-gray-300">{{ formatDate(booking.booking_date) }}</div>
-                                        <div class="text-muted-foreground text-sm dark:text-gray-400">{{ formatTime(booking.booking_time) }}</div>
+                                        <div class="text-sm dark:text-gray-300">{{ formatDate(booking.occupied_table?.date) }}</div>
+                                        <div class="text-muted-foreground text-sm dark:text-gray-400">
+                                            {{ formatTime(booking.occupied_table?.time) }}
+                                        </div>
                                     </div>
                                 </TableCell>
-                                <TableCell class="dark:text-gray-300"> {{ booking.seats }} people </TableCell>
+                                <TableCell class="dark:text-gray-300">
+                                    {{ booking.occupied_table?.table?.capacity ? booking.occupied_table.table.capacity + ' people' : 'N/A' }}
+                                </TableCell>
                                 <TableCell>
                                     <div class="space-y-1">
                                         <div v-for="menu in booking.menus" :key="menu.id" class="text-sm dark:text-gray-300">

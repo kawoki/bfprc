@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { updateTheme } from '@/composables/useAppearance';
-import { MenuCategory } from '@/types';
+import { MenuCategory, Table } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, ref, watch } from 'vue';
@@ -21,13 +21,6 @@ import { Input } from '../ui/input';
 import Textarea from '../ui/textarea/Textarea.vue';
 
 updateTheme('light');
-
-// Define table capacity limits
-const TABLE_CAPACITY = {
-    '2': 3, // 3 bookings per hour for 2-seater tables
-    '4': 2, // 2 bookings per hour for 4-seater tables
-    '8': 1, // 1 booking per hour for 8-seater tables
-} as const;
 
 // State for booked times with seat information
 const bookedTimes = ref<Record<string, Record<string, number>>>({});
@@ -66,8 +59,27 @@ const isTimeSlotInFuture = (time: string) => {
     return bookingDateTime > now;
 };
 
+// Check if a time slot is available (has at least one free table)
+const isTimeSlotAvailable = (time: string) => {
+    if (!isTimeSlotInFuture(time)) return false;
+    if (!bookedTimes.value[time]) return true;
+
+    // Get all table IDs that are booked at this time
+    const bookedTableIds = Object.keys(bookedTimes.value[time]);
+    // Check if there's at least one table not in the booked list
+    return props.tables.some((table) => !bookedTableIds.includes(String(table.id)));
+};
+
+// Get the number of available tables for a time slot
+const getAvailableTablesCount = (time: string) => {
+    if (!bookedTimes.value[time]) return props.tables.length;
+
+    const bookedTableIds = Object.keys(bookedTimes.value[time]);
+    return props.tables.filter((table) => !bookedTableIds.includes(String(table.id))).length;
+};
+
 // Check if a table size is available for a specific time
-const isTableSizeAvailable = (time: string, seats: keyof typeof TABLE_CAPACITY) => {
+const isTableSizeAvailable = (time: string, seats: string) => {
     if (!isTimeSlotInFuture(time)) return false;
 
     // Initialize an empty object for the time if it doesn't exist
@@ -77,19 +89,21 @@ const isTableSizeAvailable = (time: string, seats: keyof typeof TABLE_CAPACITY) 
 
     const timeBookings = bookedTimes.value[time];
     const currentBookings = timeBookings[seats] || 0;
-    return currentBookings < TABLE_CAPACITY[seats];
+    const capacity = tableCapacities.value[seats] || 0;
+    return currentBookings < capacity;
 };
 
 // Get available table sizes for a specific time
 const getAvailableTableSizes = (time: string) => {
-    return (Object.keys(TABLE_CAPACITY) as Array<keyof typeof TABLE_CAPACITY>).filter((seats) =>
-        isTableSizeAvailable(time, seats as keyof typeof TABLE_CAPACITY),
-    );
+    return Object.keys(tableCapacities.value).filter((seats) => isTableSizeAvailable(time, seats));
 };
 
 const props = defineProps<{
     menuCategories: MenuCategory[];
+    tables: Table[];
 }>();
+
+console.log(props.tables);
 
 // Add state for selected menus
 const selectedMenus = ref<Array<{ menu_id: number; quantity: number; name: string }>>([]);
@@ -105,7 +119,7 @@ const handleMenuSelection = (menuId: number, quantity: number, menuName: string)
 };
 
 const form = useForm({
-    seats: '',
+    table_id: '',
     booking_date: '',
     booking_time: '',
     firstname: '',
@@ -148,12 +162,12 @@ watch(selectedDate, async (newDate) => {
         const response = await axios.get(route('bookings.available-times', { date: newDate.toString() }));
         bookedTimes.value = response.data.bookedTimes;
 
-        // If currently selected time and seats are now fully booked or in the past, clear the selection
-        if (selectedTime.value && form.seats) {
-            if (!isTableSizeAvailable(selectedTime.value, form.seats as keyof typeof TABLE_CAPACITY)) {
+        // If currently selected time and table are now fully booked or in the past, clear the selection
+        if (selectedTime.value && form.table_id) {
+            if (!isTableAvailable(selectedTime.value, props.tables.find((t) => String(t.id) === form.table_id)!)) {
                 selectedTime.value = '';
                 form.booking_time = '';
-                form.seats = '';
+                form.table_id = '';
             }
         }
     } catch (error) {
@@ -166,24 +180,33 @@ watch(selectedDate, async (newDate) => {
     }
 });
 
-// Watch for time changes to update available table sizes
+// Update watch for time changes to clear table_id
 watch(selectedTime, (newTime) => {
     if (!newTime) {
-        form.seats = '';
+        form.table_id = '';
         return;
     }
 
-    // If current seat selection is not available for the new time, clear it
-    if (form.seats && !isTableSizeAvailable(newTime, form.seats as keyof typeof TABLE_CAPACITY)) {
-        form.seats = '';
+    // If current table is not available for the new time, clear it
+    if (form.table_id && !isTableAvailable(newTime, props.tables.find((t) => String(t.id) === form.table_id)!)) {
+        form.table_id = '';
     }
 });
 
+// Check if a table is available for a specific time
+const isTableAvailable = (time: string, table: Table) => {
+    if (!isTimeSlotInFuture(time)) return false;
+    if (!bookedTimes.value[time]) return true;
+
+    // Check if this specific table is booked at this time
+    return !bookedTimes.value[time][String(table.id)];
+};
+
 const handleSubmit = () => {
     // Validate required fields
-    if (!selectedDate.value || !selectedTime.value || !form.seats) {
+    if (!selectedDate.value || !selectedTime.value || !form.table_id) {
         toast.error('Error', {
-            description: 'Please select a date, time, and table size.',
+            description: 'Please select a date, time, and table.',
         });
         return;
     }
@@ -211,23 +234,10 @@ const handleSubmit = () => {
             selectedMenus.value = [];
         },
         onError: (errors) => {
-            // Add console.log to debug errors
             console.error('Form submission errors:', errors);
-
-            // Handle validation errors
-            if (errors.seats) {
-                toast.error('Error', {
-                    description: 'Please select a valid table size.',
-                });
-            } else if (errors.booking_date || errors.booking_time) {
-                toast.error('Error', {
-                    description: 'Please select a valid date and time.',
-                });
-            } else {
-                toast.error('Error', {
-                    description: 'There was an error submitting your booking. Please try again.',
-                });
-            }
+            toast.error('Error', {
+                description: 'There was an error submitting your booking. Please try again.',
+            });
         },
     });
 };
@@ -242,6 +252,43 @@ const allMenus = computed(() =>
 );
 
 const selectedMenuId = ref<number | null>(null);
+
+const tableCapacities = computed(() => {
+    return props.tables.reduce(
+        (acc, table) => {
+            const capacity = String(table.capacity);
+            acc[capacity] = (acc[capacity] || 0) + 1;
+            return acc;
+        },
+        {} as Record<string, number>,
+    );
+});
+
+// Add function to get available tables for a specific time
+const getAvailableTables = (time: string) => {
+    if (!isTimeSlotInFuture(time)) return [];
+
+    return props.tables.filter((table) => {
+        const capacity = String(table.capacity);
+        const bookedCount = bookedTimes.value[time]?.[capacity] || 0;
+        const totalTables = tableCapacities.value[capacity] || 0;
+        return bookedCount < totalTables;
+    });
+};
+
+// Update watch for time changes to clear table_id
+watch(selectedTime, (newTime) => {
+    if (!newTime) {
+        form.table_id = '';
+        return;
+    }
+
+    // If current table is not available for the new time, clear it
+    const availableTables = getAvailableTables(newTime);
+    if (!availableTables.some((table) => String(table.id) === form.table_id)) {
+        form.table_id = '';
+    }
+});
 </script>
 
 <template>
@@ -281,33 +328,32 @@ const selectedMenuId = ref<number | null>(null);
                             <SelectContent>
                                 <SelectGroup>
                                     <SelectLabel>Time of day</SelectLabel>
-                                    <SelectItem v-for="time in timeOfDay" :key="time" :value="time" :disabled="!isTimeSlotInFuture(time)">
+                                    <SelectItem v-for="time in timeOfDay" :key="time" :value="time" :disabled="!isTimeSlotAvailable(time)">
                                         {{ time }}
-                                        <span v-if="bookedTimes[time]" class="text-sm text-gray-500">
-                                            ({{ Object.values(bookedTimes[time]).reduce((a, b) => a + b, 0) }} bookings)
-                                        </span>
                                         <span v-if="!isTimeSlotInFuture(time)" class="text-sm text-red-500"> (Past time) </span>
+                                        <span v-else-if="!isTimeSlotAvailable(time)" class="text-sm text-red-500"> (Fully booked) </span>
+                                        <span v-else class="text-sm text-gray-500"> ({{ getAvailableTablesCount(time) }} tables available) </span>
                                     </SelectItem>
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
 
-                        <Select v-model="form.seats" class="w-full" :disabled="!selectedTime || !isTimeSlotInFuture(selectedTime)">
+                        <Select v-model="form.table_id" class="w-full" :disabled="!selectedTime">
                             <SelectTrigger class="w-full">
-                                <SelectValue placeholder="Select table size" />
+                                <SelectValue placeholder="Select a table" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup>
-                                    <SelectLabel>Table size</SelectLabel>
+                                    <SelectLabel>Available Tables</SelectLabel>
                                     <SelectItem
-                                        v-for="seats in ['2', '4', '8']"
-                                        :key="seats"
-                                        :value="seats"
-                                        :disabled="!isTableSizeAvailable(selectedTime, seats as keyof typeof TABLE_CAPACITY)"
+                                        v-for="table in props.tables"
+                                        :key="table.id"
+                                        :value="String(table.id)"
+                                        :disabled="!isTableAvailable(selectedTime, table)"
                                     >
-                                        Table for {{ seats }}
-                                        <span v-if="selectedTime && bookedTimes[selectedTime][seats]" class="text-sm text-gray-500">
-                                            ({{ bookedTimes[selectedTime][seats] }}/{{ TABLE_CAPACITY[seats as keyof typeof TABLE_CAPACITY] }} booked)
+                                        Table {{ table.id }} ({{ table.capacity }} seats)
+                                        <span v-if="selectedTime && !isTableAvailable(selectedTime, table)" class="text-sm text-red-500">
+                                            (Not available)
                                         </span>
                                     </SelectItem>
                                 </SelectGroup>
@@ -418,7 +464,7 @@ const selectedMenuId = ref<number | null>(null);
                         <Button
                             type="submit"
                             class="block w-full rounded-md bg-indigo-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
-                            :disabled="form.processing || !selectedDate || !selectedTime || !form.seats"
+                            :disabled="form.processing || !selectedDate || !selectedTime || !form.table_id"
                         >
                             <span v-if="form.processing">Processing...</span>
                             <span v-else>Book a reservation</span>
