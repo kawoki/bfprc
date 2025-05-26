@@ -131,54 +131,67 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Fried Chicken',
                 'description' => 'Fried chicken menu',
+                'price' => 280,
             ],
             [
                 'name' => 'Chicken Adobo',
                 'description' => 'Chicken adobo menu',
+                'price' => 300,
             ],
             [
                 'name' => 'Chicken Curry',
                 'description' => 'Chicken curry menu',
+                'price' => 350,
             ],
             [
                 'name' => 'Tinolang Manok',
                 'description' => 'Tinolang manok menu',
+                'price' => 400,
             ],
             [
                 'name' => 'Pork Adobo',
                 'description' => 'Pork adobo menu',
+                'price' => 400,
             ],
             [
                 'name' => 'Prok Sinigang',
                 'description' => 'Prok sinigang menu',
+                'price' => 400,
             ],
             [
                 'name' => 'Pork Menudo',
                 'description' => 'Pork menudo menu',
+                'price' => 400,
             ],
             [
                 'name' => 'Shrimp Sinigang',
                 'description' => 'Shrimp sinigang menu',
+                'price' => 450,
             ],
             [
                 'name' => 'Garlic Shrimp',
                 'description' => 'Garlic shrimp menu',
+                'price' => 450,
             ],
             [
                 'name' => 'Letchon Kawali',
                 'description' => 'Letchon kawali menu',
+                'price' => 300,
             ],
             [
                 'name' => 'Lumpiang Shanghai',
                 'description' => 'Lumpiang shanghai menu',
+                'price' => 120,
             ],
             [
                 'name' => 'Sisig',
                 'description' => 'Sisig menu',
+                'price' => 300,
             ],
             [
                 'name' => 'Chopsuey',
                 'description' => 'Chopsuey menu',
+                'price' => 350,
             ],
         ]);
 
@@ -189,39 +202,48 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Pansit Palabok',
                 'description' => 'Pansit palabok menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Special Batchoy',
                 'description' => 'Special batchoy menu',
+                'price' => 60,
             ],
             [
                 'name' => 'Bihon Batchoy',
                 'description' => 'Bihon batchoy menu',
+                'price' => 70,
             ],
             [
                 'name' => 'Sotanghon Batchoy',
                 'description' => 'Sotanghon batchoy menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Burger',
                 'description' => 'Burger menu',
+                'price' => 55,
             ],
             [
                 'name' => 'Fries',
                 'description' => 'Fries menu',
+                'price' => 60,
             ],
             [
                 'name' => 'Spaghetti',
                 'description' => 'Spaghetti menu',
+                'price' => 60,
             ],
 
             [
                 'name' => 'Carbonara',
                 'description' => 'Carbonara menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Cheese Sticks',
                 'description' => 'Cheese sticks menu',
+                'price' => 110,
             ],
         ]);
 
@@ -232,30 +254,37 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Tapsilog',
                 'description' => 'Tapsilog menu',
+                'price' => 100,
             ],
             [
                 'name' => 'Hotsilog',
                 'description' => 'Hotsilog menu',
+                'price' => 100,
             ],
             [
                 'name' => 'Cornsilog',
                 'description' => 'Cornsilog menu',
+                'price' => 100,
             ],
             [
                 'name' => 'Longsilog',
                 'description' => 'Longsilog menu',
+                'price' => 100,
             ],
             [
                 'name' => 'Spamsilog',
                 'description' => 'Spamsilog menu',
+                'price' => 100,
             ],
             [
                 'name' => 'Nugetsilog',
                 'description' => 'Nugetsilog menu',
+                'price' => 100,
             ],
             [
                 'name' => 'Shans Silog',
                 'description' => 'Shans silog menu',
+                'price' => 100,
             ],
         ]);
 
@@ -266,30 +295,37 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Burger w/ Fries',
                 'description' => 'Burger w/ fries menu',
+                'price' => 120,
             ],
             [
                 'name' => 'Hunggarian Sausage w/ Fries',
                 'description' => 'Hunggarian sausage w/ fries menu',
+                'price' => 250,
             ],
             [
                 'name' => 'Angus Beef Burger w/ Fries',
                 'description' => 'Angus beef burger menu',
+                'price' => 250,
             ],
             [
                 'name' => 'Fish and Fries',
                 'description' => 'Fish and fries menu',
+                'price' => 200,
             ],
             [
                 'name' => 'Happydog w/ Fries',
                 'description' => 'Happydog w/ fries menu',
+                'price' => 120,
             ],
             [
                 'name' => 'Spaghetti w/ Fries',
                 'description' => 'Spaghetti w/ fries menu',
+                'price' => 120,
             ],
             [
                 'name' => 'Carbonara w/ Hash Brown',
                 'description' => 'Carbonara w/ hash brown menu',
+                'price' => 120,
             ],
         ]);
 
@@ -300,26 +336,32 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Dinuguan Rice',
                 'description' => 'Dinuguan rice menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Adobo Chicken Rice',
                 'description' => 'Adobo chicken rice menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Chicken Curry Rice',
                 'description' => 'Chicken curry rice menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Menudo Rice',
                 'description' => 'Menudo rice menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Bopis Rice',
                 'description' => 'Bopis rice menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Bicol Express Rice',
                 'description' => 'Bicol express rice menu',
+                'price' => 90,
             ],
         ]);
 
@@ -330,26 +372,32 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Sotanghon Guisado',
                 'description' => 'Sotanghon guisado menu',
+                'price' => 300,
             ],
             [
                 'name' => 'Canton Special',
                 'description' => 'Canton special menu',
+                'price' => 300,
             ],
             [
                 'name' => 'Bihon Special',
                 'description' => 'Bihon special menu',
+                'price' => 300,
             ],
             [
                 'name' => 'Bam-e',
                 'description' => 'Bam-e menu',
+                'price' => 300,
             ],
             [
                 'name' => 'Lomi',
                 'description' => 'Lomi menu',
+                'price' => 300,
             ],
             [
                 'name' => 'Pansit Palabok',
                 'description' => 'Pansit palabok menu',
+                'price' => 300,
             ],
         ]);
 
@@ -360,18 +408,22 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Platter Plain Rice',
                 'description' => 'Platter plain rice menu',
+                'price' => 150,
             ],
             [
                 'name' => 'Platter Garlic Rice',
                 'description' => 'Platter garlic rice menu',
+                'price' => 200,
             ],
             [
                 'name' => 'Plain Rice Cup',
                 'description' => 'Plain rice cup menu',
+                'price' => 15,
             ],
             [
                 'name' => 'Garlic Rice Cup',
                 'description' => 'Garlic rice cup menu',
+                'price' => 20,
             ],
         ]);
 
@@ -382,22 +434,27 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Regular Black Coffee',
                 'description' => 'Regular black coffee menu',
+                'price' => 25,
             ],
             [
                 'name' => 'Double Latte',
                 'description' => 'Double latte menu',
+                'price' => 70,
             ],
             [
                 'name' => 'Strawberry Latte',
                 'description' => 'Strawberry latte menu',
+                'price' => 70,
             ],
             [
                 'name' => 'Caramel Latte',
                 'description' => 'Caramel latte menu',
+                'price' => 70,
             ],
             [
                 'name' => 'Mocha Latte',
                 'description' => 'Mocha latte menu',
+                'price' => 70,
             ],
         ]);
 
@@ -408,46 +465,57 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Dragon Fruit',
                 'description' => 'Dragon fruit menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Mango',
                 'description' => 'Mango menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Banana',
                 'description' => 'Banana menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Banana w/ Peanut',
                 'description' => 'Banana w/ peanut menu',
+                'price' => 95,
             ],
             [
                 'name' => 'Buko',
                 'description' => 'Buko menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Buko w/ Peanut',
                 'description' => 'Buko w/ peanut menu',
+                'price' => 95,
             ],
             [
                 'name' => 'Avocado',
                 'description' => 'Avocado menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Vanilla',
                 'description' => 'Vanilla menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Chocolate',
                 'description' => 'Chocolate menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Strawberry',
                 'description' => 'Strawberry menu',
+                'price' => 90,
             ],
             [
                 'name' => 'Papaya',
                 'description' => 'Papaya menu',
+                'price' => 90,
             ],
         ]);
 
@@ -458,26 +526,32 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Chocolate',
                 'description' => 'Chocolate menu',
+                'price' => 120,
             ],
             [
                 'name' => 'Strawberry',
                 'description' => 'Strawberry menu',
+                'price' => 120,
             ],
             [
                 'name' => 'Vanilla',
                 'description' => 'Vanilla menu',
+                'price' => 120,
             ],
             [
                 'name' => 'Red Velvet',
                 'description' => 'Red velvet menu',
+                'price' => 120,
             ],
             [
                 'name' => 'Cookies n Cream',
                 'description' => 'Cookies n cream menu',
+                'price' => 120,
             ],
             [
                 'name' => 'Mango Cheesecake',
                 'description' => 'Mango cheesecake menu',
+                'price' => 120,
             ],
         ]);
 
@@ -488,52 +562,64 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Taro',
                 'description' => 'Taro menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Caramel Sugar',
                 'description' => 'Caramel sugar menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Cookies n Cream',
                 'description' => 'Cookies n cream menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Wintermelon',
                 'description' => 'Wintermelon menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Red Velvet',
                 'description' => 'Red velvet menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Black Forest',
                 'description' => 'Black forest menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Dark Chocolate',
                 'description' => 'Dark chocolate menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Okinawa',
                 'description' => 'Okinawa menu',
+                'price' => 80,
             ],
 
             [
                 'name' => 'Matcha',
                 'description' => 'Matcha menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Hazelnut',
                 'description' => 'Hazelnut menu',
+                'price' => 80,
             ],
             [
                 'name' => 'Mango Cheesecake',
                 'description' => 'Mango cheesecake menu',
+                'price' => 80,
             ],
 
             [
                 'name' => 'Hokaido',
                 'description' => 'Hokaido menu',
+                'price' => 80,
             ],
         ]);
 
@@ -544,51 +630,63 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Ice Tea',
                 'description' => 'Ice tea menu',
+                'price' => 45,
             ],
             [
                 'name' => 'Pineapple Juice',
                 'description' => 'Pineapple juice menu',
+                'price' => 45,
             ],
             [
                 'name' => 'Blue Lemonade',
                 'description' => 'Blue lemonade menu',
+                'price' => 45,
             ],
             [
                 'name' => 'Pink Lemonade',
                 'description' => 'Pink lemonade menu',
+                'price' => 45,
             ],
             [
                 'name' => 'Coke',
                 'description' => 'Coke menu',
+                'price' => 25,
             ],
             [
                 'name' => 'Coke Float',
                 'description' => 'Coke float menu',
+                'price' => 100,
             ],
             [
                 'name' => 'Pitcher Juice',
                 'description' => 'Pitcher juice menu',
+                'price' => 100,
             ],
             [
                 'name' => 'Jar Juice',
                 'description' => 'Jar juice menu',
+                'price' => 300,
             ],
             [
                 'name' => 'Bucket Beer Mix',
                 'description' => 'Bucket beer mix menu',
+                'price' => 400,
             ],
             [
                 'name' => 'San Mig Light',
                 'description' => 'San mig light menu',
+                'price' => 60,
             ],
             [
                 'name' => 'Red Horse',
                 'description' => 'Red horse menu',
+                'price' => 60,
             ],
 
             [
                 'name' => 'Palesin',
                 'description' => 'Palesin menu',
+                'price' => 60,
             ],
         ]);
 
@@ -599,6 +697,7 @@ class MenuCategorySeeder extends Seeder
             [
                 'name' => 'Friend Chicken (Unli Rice / Drinks)',
                 'description' => 'Friend chicken (unli rice / drinks) menu',
+                'price' => 199,
             ],
         ]);
     }
