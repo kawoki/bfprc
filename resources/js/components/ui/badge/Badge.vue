@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 interface Props {
     class?: string;
-    variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+    variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success';
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -15,7 +15,8 @@ const variantClasses = {
     default: 'bg-primary text-primary-foreground hover:bg-primary/80',
     secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
     destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/80',
-    outline: 'text-foreground',
+    outline: 'text-foreground border-foreground',
+    success: 'bg-green-500 text-white',
 };
 </script>
 

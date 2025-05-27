@@ -31,7 +31,6 @@ interface MenuItem {
     price: number;
     menu_category_id: number;
     categoryName?: string;
-    pivot?: { quantity: number; [key: string]: any };
 }
 
 interface Category {
@@ -46,7 +45,7 @@ interface BookingInfo {
     date: string;
     time: string;
     customer_name: string;
-    menus: MenuItem[];
+    items: AppItemEntry[];
 }
 
 interface Table {
@@ -56,6 +55,7 @@ interface Table {
     booking?: BookingInfo;
     capacity: number;
     has_active_pending_order?: boolean;
+    quantity: number;
 }
 
 interface OrderItem {
@@ -63,12 +63,12 @@ interface OrderItem {
     quantity: number;
 }
 
-interface PendingOrderItem {
+interface AppItemEntry {
     id: number;
     menu_id: number;
     quantity: number;
-    price: string;
-    subtotal: string;
+    price_at_time_of_order: string;
+    subtotal_at_time_of_order: string;
     menu: MenuItem;
 }
 
@@ -80,7 +80,7 @@ interface PendingOrder {
     total_amount: string;
     created_at: string;
     updated_at: string;
-    items: PendingOrderItem[];
+    items: AppItemEntry[];
     table: Table;
 }
 
@@ -117,17 +117,17 @@ const selectTable = (table: Table) => {
 
     if (activePendingOrderForTable) {
         viewingMode.value = 'pending_order';
-        orderItems.value = activePendingOrderForTable.items.map((item) => ({
-            menuItem: { ...item.menu, price: parseFloat(item.price) },
+        orderItems.value = activePendingOrderForTable.items.map((item: AppItemEntry) => ({
+            menuItem: { ...item.menu, price: parseFloat(item.price_at_time_of_order) },
             quantity: item.quantity,
         }));
         currentLoadedPendingOrderId.value = activePendingOrderForTable.id;
     } else if (table.booking && table.status === 'occupied') {
         viewingMode.value = 'booking_details';
-        if (table.booking.menus && table.booking.menus.length > 0) {
-            orderItems.value = table.booking.menus.map((bookedMenu) => ({
-                menuItem: { ...bookedMenu, price: Number(bookedMenu.price) },
-                quantity: bookedMenu.pivot?.quantity || 1,
+        if (table.booking.items && table.booking.items.length > 0) {
+            orderItems.value = table.booking.items.map((bookedItem: AppItemEntry) => ({
+                menuItem: { ...bookedItem.menu, price: parseFloat(bookedItem.price_at_time_of_order) },
+                quantity: bookedItem.quantity,
             }));
         } else {
             orderItems.value = [];
@@ -506,7 +506,7 @@ const deletePendingOrderOnEmpty = (pendingOrderId: number) => {
                             <ul class="space-y-1 text-sm">
                                 <li v-for="item in po.items" :key="item.id" class="flex justify-between">
                                     <span>{{ item.menu.name }} (x{{ item.quantity }})</span>
-                                    <span>Php {{ (parseFloat(item.price) * item.quantity).toFixed(2) }}</span>
+                                    <span>Php {{ (parseFloat(item.price_at_time_of_order) * item.quantity).toFixed(2) }}</span>
                                 </li>
                             </ul>
                         </CardContent>

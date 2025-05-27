@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PendingOrder extends Model
 {
@@ -28,8 +28,11 @@ class PendingOrder extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function items(): HasMany
+    /**
+     * Get all of the pending order's items.
+     */
+    public function items(): MorphMany
     {
-        return $this->hasMany(PendingOrderItem::class);
+        return $this->morphMany(Item::class, 'itemable');
     }
 }

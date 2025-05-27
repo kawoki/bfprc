@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\OccupiedTable;
 use App\Models\PendingOrder;
-use App\Models\PendingOrderItem;
 use App\Models\Sale;
-use App\Models\SaleItem;
 use App\Models\Table;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PendingOrderController extends Controller
@@ -28,7 +27,6 @@ class PendingOrderController extends Controller
 
         DB::beginTransaction();
         try {
-            // Check if there's an existing active pending order for this table
             $pendingOrder = PendingOrder::where('table_id', $request->table_id)
                 ->where('status', 'active')
                 ->first();
@@ -38,27 +36,23 @@ class PendingOrderController extends Controller
             });
 
             if ($pendingOrder) {
-                // Update existing pending order
                 $pendingOrder->update(['total_amount' => $totalAmount]);
-                // Clear existing items and add new ones
                 $pendingOrder->items()->delete();
             } else {
-                // Create new pending order
                 $pendingOrder = PendingOrder::create([
                     'table_id' => $request->table_id,
-                    'user_id' => auth()->user()->id, // Assumes user is authenticated
+                    'user_id' => Auth::id(),
                     'total_amount' => $totalAmount,
                     'status' => 'active',
                 ]);
             }
 
             foreach ($request->items as $itemData) {
-                PendingOrderItem::create([
-                    'pending_order_id' => $pendingOrder->id,
+                $pendingOrder->items()->create([
                     'menu_id' => $itemData['menu_id'],
                     'quantity' => $itemData['quantity'],
-                    'price' => $itemData['price'],
-                    'subtotal' => $itemData['price'] * $itemData['quantity'],
+                    'price_at_time_of_order' => $itemData['price'],
+                    'subtotal_at_time_of_order' => $itemData['price'] * $itemData['quantity'],
                 ]);
             }
 
@@ -87,16 +81,15 @@ class PendingOrderController extends Controller
             $sale = Sale::create([
                 'user_id' => $pendingOrder->user_id,
                 'total_amount' => $pendingOrder->total_amount,
-                'status' => 'pending', // Or 'completed' directly if no further payment processing step
+                'status' => 'completed',
             ]);
 
             foreach ($pendingOrder->items as $pendingItem) {
-                SaleItem::create([
-                    'sale_id' => $sale->id,
+                $sale->items()->create([
                     'menu_id' => $pendingItem->menu_id,
                     'quantity' => $pendingItem->quantity,
-                    'price' => $pendingItem->price,
-                    'subtotal' => $pendingItem->subtotal,
+                    'price_at_time_of_order' => $pendingItem->price_at_time_of_order,
+                    'subtotal_at_time_of_order' => $pendingItem->subtotal_at_time_of_order,
                 ]);
             }
 
@@ -105,14 +98,12 @@ class PendingOrderController extends Controller
                 'occupiable_id' => $sale->id,
                 'occupiable_type' => Sale::class,
                 'table_id' => $pendingOrder->table_id,
-                'date' => now()->format('Y-m-d'), // Or use sale creation date
-                'time' => now()->format('H:i'),   // Or use sale creation time
+                'date' => now()->format('Y-m-d'),
+                'time' => now()->format('H:i'),
             ]);
 
-            // Update table status to occupied
             Table::where('id', $pendingOrder->table_id)->update(['status' => 'occupied']);
 
-            // Update pending order status
             $pendingOrder->update(['status' => 'completed']);
 
             DB::commit();
@@ -140,9 +131,9 @@ class PendingOrderController extends Controller
 
         DB::beginTransaction();
         try {
-            // Delete associated items first
+            // Items are deleted via the MorphMany relationship's cascading delete
+            // or model events if configured. Explicit delete here is safer.
             $pendingOrder->items()->delete();
-            // Then delete the pending order itself
             $pendingOrder->delete();
 
             DB::commit();

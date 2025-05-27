@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { updateTheme } from '@/composables/useAppearance';
 import { MenuCategory, Table } from '@/types';
 import { useForm } from '@inertiajs/vue3';
+import { CalendarDate, today, type DateValue as CalendarDateValueType } from '@internationalized/date';
 import axios from 'axios';
 import { computed, ref, watch } from 'vue';
 import { toast, Toaster } from 'vue-sonner';
@@ -132,37 +133,65 @@ const form = useForm({
 const selectedDate = ref('');
 const selectedTime = ref('');
 
-// Add this function to check if a date is in the past
-const isDateInPast = (date: string) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const selectedDate = new Date(date);
-    selectedDate.setHours(0, 0, 0, 0);
-    return selectedDate < today;
+// Computed property to interface with the Calendar component
+const calendarModel = computed<CalendarDateValueType | undefined>({
+    get: () => {
+        if (!selectedDate.value) return undefined;
+        const [year, month, day] = selectedDate.value.split('-').map(Number);
+        try {
+            return new CalendarDate(year, month, day);
+        } catch (e) {
+            return undefined; // Invalid date string
+        }
+    },
+    set: (val: CalendarDateValueType | undefined) => {
+        if (val) {
+            selectedDate.value = `${val.year}-${String(val.month).padStart(2, '0')}-${String(val.day).padStart(2, '0')}`;
+        } else {
+            selectedDate.value = '';
+        }
+    },
+});
+
+const isDateInPast = (dateValue: CalendarDateValueType) => {
+    const calToday = today(getLocalTimeZone());
+    // Compare dateValue with calToday. Ensure dateValue is not before today, disregarding time.
+    return dateValue.compare(calToday) < 0;
 };
 
-// Add this function to get the minimum selectable date (today)
-const getMinDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+const getMinDate = (): CalendarDateValueType => {
+    return today(getLocalTimeZone());
 };
+
+// Helper to get local time zone, important for @internationalized/date
+function getLocalTimeZone(): string {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
 
 // Update the watch for date changes
-watch(selectedDate, async (newDate) => {
-    if (!newDate) return;
-
-    // If the selected date is in the past, clear it
-    if (isDateInPast(newDate)) {
-        selectedDate.value = '';
+watch(selectedDate, async (newDateString) => {
+    if (!newDateString) {
+        isLoadingTimes.value = false;
+        bookedTimes.value = {};
+        return;
+    }
+    // Convert YYYY-MM-DD to CalendarDate to use isDateInPast
+    const [year, month, day] = newDateString.split('-').map(Number);
+    try {
+        const dateValueForCheck = new CalendarDate(year, month, day);
+        if (isDateInPast(dateValueForCheck)) {
+            return;
+        }
+    } catch (e) {
+        // Invalid date string from selectedDate ref, should ideally not happen if calendarModel setter is robust
         return;
     }
 
     isLoadingTimes.value = true;
     try {
-        const response = await axios.get(route('bookings.available-times', { date: newDate.toString() }));
+        const response = await axios.get(route('bookings.available-times', { date: newDateString }));
         bookedTimes.value = response.data.bookedTimes;
 
-        // If currently selected time and table are now fully booked or in the past, clear the selection
         if (selectedTime.value && form.table_id) {
             if (!isTableAvailable(selectedTime.value, props.tables.find((t) => String(t.id) === form.table_id)!)) {
                 selectedTime.value = '';
@@ -216,8 +245,6 @@ const handleSubmit = () => {
     form.booking_time = selectedTime.value;
     form.selected_menus = selectedMenus.value;
 
-    form.booking_date = new Date(form.booking_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-
     // Submit the form
     form.post(route('bookings.store'), {
         preserveScroll: true,
@@ -235,8 +262,17 @@ const handleSubmit = () => {
         },
         onError: (errors) => {
             console.error('Form submission errors:', errors);
+            // Construct a more detailed error message
+            let errorMessage = 'There was an error submitting your booking. Please try again.';
+            if (errors.booking_date) {
+                errorMessage = `Booking date error: ${errors.booking_date}`;
+            } else if (Object.keys(errors).length > 0) {
+                // Generic message if specific field error isn't booking_date but others exist
+                const firstErrorKey = Object.keys(errors)[0];
+                errorMessage = `Error with ${firstErrorKey}: ${errors[firstErrorKey]}`;
+            }
             toast.error('Error', {
-                description: 'There was an error submitting your booking. Please try again.',
+                description: errorMessage,
             });
         },
     });
@@ -314,10 +350,10 @@ watch(selectedTime, (newTime) => {
             <div class="mt-16 grid grid-cols-1 gap-16 sm:grid-cols-2 sm:gap-y-20">
                 <div class="col-span-1 flex flex-col gap-y-6">
                     <Calendar
-                        v-model="selectedDate"
+                        v-model="calendarModel"
                         class="bg-opacity-50 rounded-lg bg-white shadow backdrop-blur-lg"
-                        :min="getMinDate()"
-                        :disabled-dates="(date) => isDateInPast(date.toISOString().split('T')[0])"
+                        :min-value="getMinDate()"
+                        :is-date-disabled="isDateInPast"
                     />
 
                     <div class="flex gap-x-4">

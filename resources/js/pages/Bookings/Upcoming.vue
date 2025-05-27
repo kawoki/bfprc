@@ -1,119 +1,212 @@
 <script setup lang="ts">
 import BookingNav from '@/components/booking/BookingNav.vue';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
-interface Menu {
+interface MenuItem {
     id: number;
     name: string;
-    description: string | null;
-    price: number | null;
-    pivot: {
-        quantity: number;
+    price: number;
+}
+
+interface BookingItemData {
+    id: number;
+    menu_id: number;
+    quantity: number;
+    price_at_time_of_order: string;
+    subtotal_at_time_of_order: string;
+    menu: MenuItem;
+}
+
+interface OccupiedTableInfo {
+    id: number;
+    table_id: number;
+    date: string;
+    time: string;
+    table: {
+        id: number;
+        name: string;
+        capacity: number;
     };
 }
 
-interface OccupiedTable {
-    date: string;
-    time: string;
-    table: { capacity: number } | null;
-}
-
-interface Booking {
+interface BookingData {
     id: number;
     firstname: string;
     lastname: string;
     phone_number: string;
-    occupied_table?: OccupiedTable | null;
+    total_amount: string;
     confirmed_at: string | null;
     cancelled_at: string | null;
     created_at: string;
-    menus: Menu[];
+    updated_at: string;
+    items: BookingItemData[];
+    occupied_table: OccupiedTableInfo | null;
 }
 
 interface Props {
-    bookings: Booking[];
+    bookings: BookingData[];
     title: string;
 }
 
 const props = defineProps<Props>();
 
+const getBookingStatus = (booking: BookingData): 'pending' | 'confirmed' | 'cancelled' => {
+    if (booking.cancelled_at) return 'cancelled';
+    if (booking.confirmed_at) return 'confirmed';
+    return 'pending';
+};
+
+const searchQuery = ref('');
+const bookingToConfirm = ref<BookingData | null>(null);
+const bookingToCancel = ref<BookingData | null>(null);
+const isConfirmDialogOpen = ref(false);
+const isCancelDialogOpen = ref(false);
+
+const filteredBookings = computed(() => {
+    if (!searchQuery.value) {
+        return props.bookings;
+    }
+    const lowerSearchQuery = searchQuery.value.toLowerCase();
+    return props.bookings.filter((booking) => {
+        const customerName = `${booking.firstname} ${booking.lastname}`.toLowerCase();
+        const itemsMatch = booking.items?.some((item) => item.menu.name.toLowerCase().includes(lowerSearchQuery));
+        const tableMatch = booking.occupied_table?.table.name.toLowerCase().includes(lowerSearchQuery);
+        const statusMatch = getBookingStatus(booking).toLowerCase().includes(lowerSearchQuery);
+
+        return (
+            customerName.includes(lowerSearchQuery) ||
+            booking.phone_number?.toLowerCase().includes(lowerSearchQuery) ||
+            itemsMatch ||
+            tableMatch ||
+            statusMatch
+        );
+    });
+});
+
+const formatDate = (dateString: string | null): string => {
+    if (!dateString) return 'N/A';
+    try {
+        return format(parseISO(dateString), 'MMM d, yyyy');
+    } catch (e) {
+        return 'Invalid Date';
+    }
+};
+
+const formatTime = (timeString: string | null): string => {
+    if (!timeString) return 'N/A';
+    try {
+        const [hours, minutes] = timeString.split(':');
+        const date = new Date();
+        date.setHours(Number(hours), Number(minutes), 0);
+        return format(date, 'h:mm a');
+    } catch (e) {
+        return 'Invalid Time';
+    }
+};
+
+const openConfirmDialog = (booking: BookingData) => {
+    bookingToConfirm.value = booking;
+    isConfirmDialogOpen.value = true;
+};
+
+const openCancelDialog = (booking: BookingData) => {
+    bookingToCancel.value = booking;
+    isCancelDialogOpen.value = true;
+};
+
+const handleConfirm = () => {
+    if (!bookingToConfirm.value) return;
+    const bookingId = bookingToConfirm.value.id;
+    router.put(
+        route('bookings.confirm', { booking: bookingId }),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Booking confirmed successfully.');
+                isConfirmDialogOpen.value = false;
+                const index = props.bookings.findIndex((b) => b.id === bookingId);
+                if (index !== -1) {
+                    props.bookings[index].confirmed_at = new Date().toISOString();
+                    props.bookings[index].cancelled_at = null;
+                }
+                bookingToConfirm.value = null;
+            },
+            onError: (errors) => {
+                const errorMessages = Object.values(errors).flat().join(', ');
+                toast.error('Failed to confirm booking:', { description: errorMessages });
+                isConfirmDialogOpen.value = false;
+                bookingToConfirm.value = null;
+            },
+        },
+    );
+};
+
+const handleCancel = () => {
+    if (!bookingToCancel.value) return;
+    const bookingId = bookingToCancel.value.id;
+    router.put(
+        route('bookings.cancel', { booking: bookingId }),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Booking cancelled successfully.');
+                isCancelDialogOpen.value = false;
+                const index = props.bookings.findIndex((b) => b.id === bookingId);
+                if (index !== -1) {
+                    props.bookings[index].cancelled_at = new Date().toISOString();
+                    props.bookings[index].confirmed_at = null;
+                }
+                bookingToCancel.value = null;
+            },
+            onError: (errors) => {
+                const errorMessages = Object.values(errors).flat().join(', ');
+                toast.error('Failed to cancel booking:', { description: errorMessages });
+                isCancelDialogOpen.value = false;
+                bookingToCancel.value = null;
+            },
+        },
+    );
+};
+
+const getStatusVariant = (booking: BookingData): 'default' | 'destructive' | 'outline' => {
+    const status = getBookingStatus(booking);
+    switch (status) {
+        case 'confirmed':
+            return 'default';
+        case 'pending':
+            return 'outline';
+        case 'cancelled':
+            return 'destructive';
+        default:
+            return 'outline';
+    }
+};
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Bookings',
-        href: '/bookings',
-    },
-    {
-        title: 'Upcoming',
-        href: '/bookings/upcoming',
+        title: props.title,
+        href: route('bookings.upcoming'),
     },
 ];
-
-const getStatusColor = (booking: Booking) => {
-    if (booking.cancelled_at) {
-        return 'bg-red-500/10 text-red-500';
-    }
-    if (booking.confirmed_at) {
-        return 'bg-green-500/10 text-green-500';
-    }
-    return 'bg-yellow-500/10 text-yellow-500';
-};
-
-const getStatus = (booking: Booking) => {
-    if (booking.cancelled_at) {
-        return 'Cancelled';
-    }
-    if (booking.confirmed_at) {
-        return 'Confirmed';
-    }
-    return 'Pending';
-};
-
-const formatDate = (date: string | undefined) => {
-    if (!date) return '';
-    const localDate = new Date(date + 'T00:00:00+08:00');
-    return format(localDate, 'MMM dd, yyyy');
-};
-
-const formatTime = (time: string | undefined) => {
-    if (!time) return '';
-    const localTime = new Date(`2000-01-01T${time}+08:00`);
-    return format(localTime, 'h:mm a');
-};
-
-const handleConfirm = (booking: Booking) => {
-    if (confirm('Are you sure you want to confirm this booking?')) {
-        router.put(
-            `/bookings/${booking.id}/confirm`,
-            {},
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    // Optional: Show success message
-                },
-            },
-        );
-    }
-};
-
-const handleCancel = (booking: Booking) => {
-    if (confirm('Are you sure you want to cancel this booking?')) {
-        router.put(
-            `/bookings/${booking.id}/cancel`,
-            {},
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    // Optional: Show success message
-                },
-            },
-        );
-    }
-};
 </script>
 
 <template>
@@ -121,28 +214,28 @@ const handleCancel = (booking: Booking) => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-col gap-6 p-6">
-            <!-- Header Section -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
-                    <p class="text-sm text-gray-500">View and manage upcoming restaurant bookings.</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">View and manage upcoming restaurant bookings.</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-500">Last updated:</span>
-                    <span class="text-sm font-medium">{{ new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }) }}</span>
-                </div>
+                <input
+                    v-model="searchQuery"
+                    type="text"
+                    placeholder="Search bookings..."
+                    class="block w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
             </div>
 
-            <!-- Navigation -->
-            <BookingNav current-path="/bookings/upcoming" />
+            <BookingNav :current-path="route('bookings.upcoming')" />
 
-            <!-- Stats Grid -->
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <!-- Total Upcoming Bookings -->
-                <div class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div
+                    class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                >
                     <div class="flex items-center gap-4">
-                        <div class="rounded-lg bg-blue-100 p-3">
-                            <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="rounded-lg bg-blue-100 p-3 dark:bg-blue-900/50">
+                            <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
@@ -152,18 +245,18 @@ const handleCancel = (booking: Booking) => {
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-600">Total Upcoming</p>
-                            <p class="text-2xl font-semibold text-gray-900">{{ bookings.length }}</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Total Upcoming</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ bookings.length }}</p>
                         </div>
                     </div>
                     <div class="absolute bottom-0 left-0 h-1 w-full bg-blue-500"></div>
                 </div>
-
-                <!-- Confirmed Upcoming -->
-                <div class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div
+                    class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                >
                     <div class="flex items-center gap-4">
-                        <div class="rounded-lg bg-green-100 p-3">
-                            <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="rounded-lg bg-green-100 p-3 dark:bg-green-900/50">
+                            <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
@@ -173,20 +266,20 @@ const handleCancel = (booking: Booking) => {
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-600">Confirmed</p>
-                            <p class="text-2xl font-semibold text-gray-900">
-                                {{ bookings.filter((b) => b.confirmed_at).length }}
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Confirmed</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {{ bookings.filter((b) => getBookingStatus(b) === 'confirmed').length }}
                             </p>
                         </div>
                     </div>
                     <div class="absolute bottom-0 left-0 h-1 w-full bg-green-500"></div>
                 </div>
-
-                <!-- Pending Upcoming -->
-                <div class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div
+                    class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                >
                     <div class="flex items-center gap-4">
-                        <div class="rounded-lg bg-yellow-100 p-3">
-                            <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="rounded-lg bg-yellow-100 p-3 dark:bg-yellow-900/50">
+                            <svg class="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
@@ -196,27 +289,27 @@ const handleCancel = (booking: Booking) => {
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-600">Pending</p>
-                            <p class="text-2xl font-semibold text-gray-900">
-                                {{ bookings.filter((b) => !b.confirmed_at && !b.cancelled_at).length }}
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Pending</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {{ bookings.filter((b) => getBookingStatus(b) === 'pending').length }}
                             </p>
                         </div>
                     </div>
                     <div class="absolute bottom-0 left-0 h-1 w-full bg-yellow-500"></div>
                 </div>
-
-                <!-- Cancelled Upcoming -->
-                <div class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div
+                    class="relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                >
                     <div class="flex items-center gap-4">
-                        <div class="rounded-lg bg-red-100 p-3">
-                            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="rounded-lg bg-red-100 p-3 dark:bg-red-900/50">
+                            <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-600">Cancelled</p>
-                            <p class="text-2xl font-semibold text-gray-900">
-                                {{ bookings.filter((b) => b.cancelled_at).length }}
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Cancelled</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {{ bookings.filter((b) => getBookingStatus(b) === 'cancelled').length }}
                             </p>
                         </div>
                     </div>
@@ -224,81 +317,88 @@ const handleCancel = (booking: Booking) => {
                 </div>
             </div>
 
-            <!-- Bookings Table -->
-            <div class="rounded-xl border bg-white p-6 shadow-sm">
+            <div class="rounded-xl border bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                 <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">Upcoming Bookings</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }} Bookings</h2>
                 </div>
-                <div class="overflow-hidden rounded-lg border">
+                <div class="overflow-hidden rounded-lg border dark:border-gray-700">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Contact</TableHead>
-                                <TableHead>Date & Time</TableHead>
-                                <TableHead>Table Capacity</TableHead>
-                                <TableHead>Menus</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Actions</TableHead>
+                                <TableHead class="dark:text-gray-300">Customer</TableHead>
+                                <TableHead class="dark:text-gray-300">Contact</TableHead>
+                                <TableHead class="dark:text-gray-300">Date</TableHead>
+                                <TableHead class="dark:text-gray-300">Time</TableHead>
+                                <TableHead class="dark:text-gray-300">Table</TableHead>
+                                <TableHead class="dark:text-gray-300">Items</TableHead>
+                                <TableHead class="text-right dark:text-gray-300">Total</TableHead>
+                                <TableHead class="dark:text-gray-300">Status</TableHead>
+                                <TableHead class="text-center dark:text-gray-300">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="booking in bookings" :key="booking.id">
-                                <TableCell class="font-medium"> {{ booking.firstname }} {{ booking.lastname }} </TableCell>
-                                <TableCell>
-                                    <div class="space-y-1">
-                                        <div class="text-sm">{{ booking.phone_number }}</div>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <div class="space-y-1">
-                                        <div class="text-sm">{{ formatDate(booking.occupied_table?.date) }}</div>
-                                        <div class="text-muted-foreground text-sm">{{ formatTime(booking.occupied_table?.time) }}</div>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    {{ booking.occupied_table?.table?.capacity ? booking.occupied_table.table.capacity + ' people' : 'N/A' }}
-                                </TableCell>
-                                <TableCell>
-                                    <div class="space-y-1">
-                                        <div v-for="menu in booking.menus" :key="menu.id" class="text-sm">
-                                            {{ menu.name }} ({{ menu.pivot.quantity }}x)
+                            <template v-if="filteredBookings.length > 0">
+                                <TableRow v-for="booking in filteredBookings" :key="booking.id" class="dark:border-gray-700">
+                                    <TableCell class="dark:text-white">{{ booking.firstname }} {{ booking.lastname }}</TableCell>
+                                    <TableCell class="dark:text-gray-300">{{ booking.phone_number }}</TableCell>
+                                    <TableCell class="dark:text-gray-300">{{
+                                        booking.occupied_table ? formatDate(booking.occupied_table.date ?? null) : 'N/A'
+                                    }}</TableCell>
+                                    <TableCell class="dark:text-gray-300">{{
+                                        booking.occupied_table ? formatTime(booking.occupied_table.time ?? null) : 'N/A'
+                                    }}</TableCell>
+                                    <TableCell class="dark:text-gray-300">
+                                        {{ booking.occupied_table?.table?.name || 'N/A' }}
+                                        <span v-if="booking.occupied_table?.table?.capacity"
+                                            >({{ booking.occupied_table.table.capacity }} seats)</span
+                                        >
+                                    </TableCell>
+                                    <TableCell class="dark:text-gray-300">
+                                        <template v-if="booking.items && booking.items.length > 0">
+                                            <ul class="list-disc pl-4">
+                                                <li v-for="item in booking.items" :key="item.id">{{ item.menu.name }} (x{{ item.quantity }})</li>
+                                            </ul>
+                                        </template>
+                                        <template v-else>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">No items</span>
+                                        </template>
+                                    </TableCell>
+                                    <TableCell class="text-right dark:text-gray-300">Php {{ parseFloat(booking.total_amount).toFixed(2) }}</TableCell>
+                                    <TableCell>
+                                        <Badge :variant="getStatusVariant(booking)">
+                                            {{ getBookingStatus(booking) }}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell class="text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <button
+                                                v-if="getBookingStatus(booking) === 'pending'"
+                                                @click="openConfirmDialog(booking)"
+                                                class="inline-flex items-center justify-center rounded-md bg-green-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
+                                            >
+                                                <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                Confirm
+                                            </button>
+                                            <button
+                                                v-if="getBookingStatus(booking) !== 'cancelled'"
+                                                @click="openCancelDialog(booking)"
+                                                class="inline-flex items-center justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
+                                            >
+                                                <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                Cancel
+                                            </button>
                                         </div>
-                                        <div v-if="booking.menus.length === 0" class="text-muted-foreground text-sm">No menus selected</div>
-                                    </div>
+                                    </TableCell>
+                                </TableRow>
+                            </template>
+                            <TableRow v-else class="dark:border-gray-700">
+                                <TableCell colspan="9" class="py-6 text-center text-gray-500 dark:text-gray-400">
+                                    No upcoming bookings found.
                                 </TableCell>
-                                <TableCell>
-                                    <Badge :class="getStatusColor(booking)">
-                                        {{ getStatus(booking) }}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <div class="flex items-center gap-2">
-                                        <button
-                                            v-if="!booking.confirmed_at && !booking.cancelled_at"
-                                            @click="handleConfirm(booking)"
-                                            class="inline-flex items-center justify-center rounded-md bg-green-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none"
-                                        >
-                                            <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Confirm
-                                        </button>
-                                        <button
-                                            v-if="!booking.cancelled_at"
-                                            @click="handleCancel(booking)"
-                                            class="inline-flex items-center justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
-                                        >
-                                            <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow v-if="bookings.length === 0">
-                                <TableCell colspan="7" class="text-muted-foreground py-6 text-center"> No upcoming bookings found </TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
@@ -306,4 +406,49 @@ const handleCancel = (booking: Booking) => {
             </div>
         </div>
     </AppLayout>
+
+    <AlertDialog :open="isConfirmDialogOpen" @update:open="isConfirmDialogOpen = $event">
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Booking</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Are you sure you want to confirm this booking for {{ bookingToConfirm?.firstname }} {{ bookingToConfirm?.lastname }}?
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel
+                    @click="
+                        isConfirmDialogOpen = false;
+                        bookingToConfirm = null;
+                    "
+                    >Cancel</AlertDialogCancel
+                >
+                <AlertDialogAction @click="handleConfirm">Confirm Booking</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog :open="isCancelDialogOpen" @update:open="isCancelDialogOpen = $event">
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Are you sure you want to cancel this booking for {{ bookingToCancel?.firstname }} {{ bookingToCancel?.lastname }}? This action
+                    cannot be undone.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel
+                    @click="
+                        isCancelDialogOpen = false;
+                        bookingToCancel = null;
+                    "
+                    >Cancel</AlertDialogCancel
+                >
+                <AlertDialogAction @click="handleCancel" class="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+                    >Yes, cancel it</AlertDialogAction
+                >
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
 </template>
