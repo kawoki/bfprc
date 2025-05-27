@@ -4,6 +4,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PendingOrderController;
 use App\Models\MenuCategory;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -39,8 +40,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Order routes
     Route::get('/order', [OrderController::class, 'index'])->name('order.index');
     Route::post('/order', [OrderController::class, 'store'])->name('order.store');
-    Route::post('/order/{sale}/complete', [OrderController::class, 'complete'])->name('order.complete');
-    Route::post('/order/{sale}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+    Route::put('/order/{sale}/complete', [OrderController::class, 'complete'])->name('order.complete');
+    Route::put('/order/{sale}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+
+    // Pending Orders Routes
+    Route::post('/pending-orders', [PendingOrderController::class, 'store'])->name('pending_orders.store');
+    Route::put('/pending-orders/{pendingOrder}/finalize', [PendingOrderController::class, 'finalize'])->name('pending_orders.finalize');
+    Route::delete('/pending-orders/{pendingOrder}', [PendingOrderController::class, 'destroy'])->name('pending_orders.destroy');
 });
 
 require __DIR__.'/settings.php';
