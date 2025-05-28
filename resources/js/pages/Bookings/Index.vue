@@ -11,6 +11,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -200,11 +201,11 @@ const getStatusVariant = (booking: BookingData): 'default' | 'destructive' | 'ou
         case 'confirmed':
             return 'success';
         case 'pending':
-            return 'outline';
+            return 'default';
         case 'cancelled':
             return 'destructive';
         default:
-            return 'outline';
+            return 'default';
     }
 };
 </script>
@@ -376,26 +377,20 @@ const getStatusVariant = (booking: BookingData): 'default' | 'destructive' | 'ou
                                     </TableCell>
                                     <TableCell class="text-center">
                                         <div class="flex items-center justify-center gap-2">
-                                            <button
-                                                v-if="getBookingStatus(booking) === 'pending' || getBookingStatus(booking) === 'cancelled'"
+                                            <Button
+                                                v-if="booking.confirmed_at === null"
                                                 @click="openConfirmDialog(booking)"
                                                 class="inline-flex items-center justify-center rounded-md bg-green-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
                                             >
-                                                <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                </svg>
                                                 Confirm
-                                            </button>
-                                            <button
-                                                v-if="getBookingStatus(booking) !== 'cancelled'"
+                                            </Button>
+                                            <Button
+                                                v-if="getBookingStatus(booking) === 'pending' || booking.confirmed_at !== null"
                                                 @click="openCancelDialog(booking)"
                                                 class="inline-flex items-center justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
                                             >
-                                                <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
                                                 Cancel
-                                            </button>
+                                            </Button>
                                         </div>
                                     </TableCell>
                                 </TableRow>

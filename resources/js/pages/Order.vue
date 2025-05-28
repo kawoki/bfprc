@@ -342,7 +342,7 @@ const deletePendingOrderOnEmpty = (pendingOrderId: number) => {
                                 v-if="table_item.status === 'occupied' && table_item.booking && !table_item.has_active_pending_order"
                                 class="mt-1 text-xs text-green-600 dark:text-green-400"
                             >
-                                Booked ({{ table_item.booking.customer_name }})
+                                Booked (Reserved)
                             </div>
                             <div v-if="table_item.has_active_pending_order" class="mt-1 text-xs text-yellow-600 dark:text-yellow-400">
                                 Pending Order
@@ -353,7 +353,7 @@ const deletePendingOrderOnEmpty = (pendingOrderId: number) => {
                 <!-- Confirmed Bookings List (can be reviewed if still needed, as bookings are on tables now) -->
                 <div class="mt-6">
                     <h3 class="text-md mb-2 font-semibold">Confirmed Bookings Today (Upcoming/Active)</h3>
-                    <div v-for="(bookings, time) in groupedConfirmedBookings" :key="time" class="mb-2 rounded-lg p-4 shadow-md">
+                    <div v-for="(bookings, time) in groupedConfirmedBookings" :key="time" class="mb-2 rounded-lg border p-4 shadow-md">
                         <div class="mb-1 text-sm font-semibold text-gray-700">Time: {{ formatTime(String(time)) }}</div>
                         <ul class="space-y-1 divide-y">
                             <li v-for="booking_detail in bookings" :key="'booking-' + booking_detail.id" class="flex items-center justify-between">

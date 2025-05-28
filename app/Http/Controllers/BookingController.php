@@ -174,30 +174,15 @@ class BookingController extends Controller
 
     public function confirm(Booking $booking)
     {
-        if ($booking->cancelled_at) {
-            return back()->with('error', 'Cannot confirm a cancelled booking.');
-        }
-
-        if ($booking->confirmed_at) {
-            return back()->with('error', 'Booking is already confirmed.');
-        }
-
-        $booking->update([
-            'confirmed_at' => now(),
-        ]);
+        $booking->confirm();
 
         return back()->with('success', 'Booking confirmed successfully.');
     }
 
     public function cancel(Booking $booking)
     {
-        if ($booking->cancelled_at) {
-            return back()->with('error', 'Booking is already cancelled.');
-        }
 
-        $booking->update([
-            'cancelled_at' => now(),
-        ]);
+        $booking->cancel();
 
         // Potentially, if items have implications (e.g. pre-ordered stock), handle here.
         // For now, items remain associated for record-keeping but booking is cancelled.

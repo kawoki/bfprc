@@ -23,7 +23,6 @@ class Booking extends Model
         'address',
         'phone_number',
         'total_amount',
-        'status',
         'confirmed_at',
         'cancelled_at',
     ];
@@ -34,8 +33,6 @@ class Booking extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'confirmed_at' => 'datetime',
-        'cancelled_at' => 'datetime',
         'total_amount' => 'decimal:2',
     ];
 
@@ -70,7 +67,6 @@ class Booking extends Model
     {
         $this->update([
             'confirmed_at' => now(),
-            'status' => 'confirmed',
             'cancelled_at' => null,
         ]);
     }
@@ -81,8 +77,8 @@ class Booking extends Model
     public function cancel(): void
     {
         $this->update([
+            'confirmed_at' => null,
             'cancelled_at' => now(),
-            'status' => 'cancelled',
         ]);
     }
 
