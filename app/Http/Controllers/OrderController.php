@@ -28,9 +28,9 @@ class OrderController extends Controller
                         // Eager load menus for the Booking model when it's the occupiable type
                         $bookingQuery->whereNotNull('confirmed_at')
                             ->whereNull('cancelled_at')
-                            ->with('menus'); // menus with pivot data (quantity)
+                            ->with('items.menu'); // menus with pivot data (quantity)
                     })
-                    ->with('occupiable'); // This loads the Booking model itself (or Sale model)
+                    ->with('occupiable.items.menu'); // This loads the Booking model itself (or Sale model)
             },
         ])->get();
 

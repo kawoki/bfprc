@@ -124,6 +124,7 @@ const selectTable = (table: Table) => {
         currentLoadedPendingOrderId.value = activePendingOrderForTable.id;
     } else if (table.booking && table.status === 'occupied') {
         viewingMode.value = 'booking_details';
+
         if (table.booking.items && table.booking.items.length > 0) {
             orderItems.value = table.booking.items.map((bookedItem: AppItemEntry) => ({
                 menuItem: { ...bookedItem.menu, price: parseFloat(bookedItem.price_at_time_of_order) },
@@ -450,23 +451,9 @@ const deletePendingOrderOnEmpty = (pendingOrderId: number) => {
                                         <p class="text-muted-foreground text-sm">Php {{ Number(item.menuItem.price).toFixed(2) }}</p>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            @click="removeFromOrder(item.menuItem.id)"
-                                            :disabled="viewingMode === 'booking_details'"
-                                        >
-                                            -
-                                        </Button>
+                                        <Button variant="outline" size="icon" @click="removeFromOrder(item.menuItem.id)"> - </Button>
                                         <span class="w-8 text-center">{{ item.quantity }}</span>
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            @click="addToOrder(item.menuItem)"
-                                            :disabled="viewingMode === 'booking_details'"
-                                        >
-                                            +
-                                        </Button>
+                                        <Button variant="outline" size="icon" @click="addToOrder(item.menuItem)"> + </Button>
                                     </div>
                                 </div>
                                 <div class="border-t pt-4">
@@ -475,14 +462,7 @@ const deletePendingOrderOnEmpty = (pendingOrderId: number) => {
                                         <span class="font-medium">Php {{ totalAmount.toFixed(2) }}</span>
                                     </div>
                                 </div>
-                                <Button
-                                    v-if="viewingMode !== 'booking_details'"
-                                    class="w-full"
-                                    :disabled="orderItems.length === 0"
-                                    @click="processOrder"
-                                >
-                                    Save Order for Table
-                                </Button>
+                                <Button class="w-full" :disabled="orderItems.length === 0" @click="processOrder"> Save Order for Table </Button>
                             </div>
                         </div>
                     </CardContent>
