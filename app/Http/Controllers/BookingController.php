@@ -115,16 +115,16 @@ class BookingController extends Controller
     public function index()
     {
         $today = Carbon::now()->startOfDay();
-        // Ensure items and their menus are loaded, and also the table via occupiedTable
+        // Only get bookings that have an occupied_table for today's date
         $bookings = Booking::with(['items.menu', 'occupiedTable.table'])
-            ->leftJoin('occupied_tables', function ($join) use ($today) {
-                $join->on('bookings.id', '=', 'occupied_tables.occupiable_id')
-                    ->where('occupied_tables.occupiable_type', Booking::class)
-                    ->where('occupied_tables.date', $today->format('Y-m-d'));
+            ->whereHas('occupiedTable', function ($query) use ($today) {
+                $query->where('date', $today->format('Y-m-d'));
             })
-            ->orderBy('occupied_tables.time')
-            ->select('bookings.*')
-            ->get();
+            ->get()
+            ->sortBy(function ($booking) {
+                return $booking->occupiedTable?->time;
+            })
+            ->values();
 
         return Inertia::render('Bookings/Index', [
             'bookings' => $bookings,
@@ -135,16 +135,17 @@ class BookingController extends Controller
     public function upcoming()
     {
         $today = Carbon::now()->startOfDay();
+        // Only get bookings that have an occupied_table for future dates
         $bookings = Booking::with(['items.menu', 'occupiedTable.table'])
-            ->leftJoin('occupied_tables', function ($join) use ($today) {
-                $join->on('bookings.id', '=', 'occupied_tables.occupiable_id')
-                    ->where('occupied_tables.occupiable_type', Booking::class)
-                    ->where('occupied_tables.date', '>', $today->format('Y-m-d'));
+            ->whereHas('occupiedTable', function ($query) use ($today) {
+                $query->where('date', '>', $today->format('Y-m-d'));
             })
-            ->orderBy('occupied_tables.date')
-            ->orderBy('occupied_tables.time')
-            ->select('bookings.*')
-            ->get();
+            ->get()
+            ->sortBy([
+                fn($booking) => $booking->occupiedTable?->date,
+                fn($booking) => $booking->occupiedTable?->time,
+            ])
+            ->values();
 
         return Inertia::render('Bookings/Index', [
             'bookings' => $bookings,
@@ -155,16 +156,15 @@ class BookingController extends Controller
     public function past()
     {
         $today = Carbon::now()->startOfDay();
+        // Only get bookings that have an occupied_table for past dates
         $bookings = Booking::with(['items.menu', 'occupiedTable.table'])
-            ->join('occupied_tables', function ($join) use ($today) {
-                $join->on('bookings.id', '=', 'occupied_tables.occupiable_id')
-                    ->where('occupied_tables.occupiable_type', Booking::class)
-                    ->where('occupied_tables.date', '<', $today->format('Y-m-d'));
+            ->whereHas('occupiedTable', function ($query) use ($today) {
+                $query->where('date', '<', $today->format('Y-m-d'));
             })
-            ->orderByDesc('occupied_tables.date')
-            ->orderByDesc('occupied_tables.time')
-            ->select('bookings.*')
-            ->get();
+            ->get()
+            ->sortByDesc(fn($booking) => $booking->occupiedTable?->date)
+            ->sortByDesc(fn($booking) => $booking->occupiedTable?->time)
+            ->values();
 
         return Inertia::render('Bookings/Index', [
             'bookings' => $bookings,
