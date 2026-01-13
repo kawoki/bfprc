@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->enum('status', ['available', 'occupied'])->default('available');
-            $table->integer('capacity')->after('status')->default(2);
+            $table->integer('capacity')->default(2);
             $table->timestamps();
         });
     }

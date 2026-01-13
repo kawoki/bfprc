@@ -35,7 +35,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Menu Management
     Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
     Route::put('/menu/categories/{category}', [MenuController::class, 'updateCategory'])->name('menu.categories.update');
+    Route::post('/menu/categories', [MenuController::class, 'storeCategory'])->name('menu.categories.store');
+    Route::delete('/menu/categories/{category}', [MenuController::class, 'destroyCategory'])->name('menu.categories.destroy');
     Route::put('/menu/items/{menu}', [MenuController::class, 'updateMenuItem'])->name('menu.items.update');
+    Route::post('/menu/items', [MenuController::class, 'storeMenuItem'])->name('menu.items.store');
+    Route::delete('/menu/items/{menu}', [MenuController::class, 'destroyMenuItem'])->name('menu.items.destroy');
 
     // Order routes
     Route::get('/order', [OrderController::class, 'index'])->name('order.index');

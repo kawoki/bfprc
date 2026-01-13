@@ -42,4 +42,51 @@ class MenuController extends Controller
 
         return redirect()->back()->with('success', 'Menu item updated successfully.');
     }
+
+    public function storeCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+        ]);
+
+        MenuCategory::create($validated);
+
+        return redirect()->back()->with('success', 'Category created successfully.');
+    }
+
+    public function destroyCategory(MenuCategory $category)
+    {
+        // Prevent deletion if category has menu items
+        if ($category->menus()->count() > 0) {
+            return redirect()->back()->withErrors([
+                'category' => 'Cannot delete category with existing menu items. Please delete all menu items first.'
+            ]);
+        }
+
+        $category->delete();
+
+        return redirect()->back()->with('success', 'Category deleted successfully.');
+    }
+
+    public function storeMenuItem(Request $request)
+    {
+        $validated = $request->validate([
+            'menu_category_id' => 'required|exists:menu_categories,id',
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        Menu::create($validated);
+
+        return redirect()->back()->with('success', 'Menu item created successfully.');
+    }
+
+    public function destroyMenuItem(Menu $menu)
+    {
+        $menu->delete();
+
+        return redirect()->back()->with('success', 'Menu item deleted successfully.');
+    }
 }

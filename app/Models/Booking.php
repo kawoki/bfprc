@@ -108,21 +108,32 @@ class Booking extends Model
 
     /**
      * Get all booked times for a specific date with table information
+     * Returns bookings grouped by time, then by table capacity
      */
     public static function getBookedTimesForDate(string $date): array
     {
         $bookings = self::whereHas('occupiedTable', function ($query) use ($date) {
             $query->where('date', $date);
         })->whereNull('cancelled_at')
+            ->with(['occupiedTable.table'])
             ->get();
 
-        return $bookings->groupBy(function ($booking) {
+        return $bookings->filter(function ($booking) {
+            // Filter out bookings without occupied table or table data
+            return $booking->occupiedTable
+                && $booking->occupiedTable->relationLoaded('table')
+                && $booking->occupiedTable->table !== null;
+        })->groupBy(function ($booking) {
             return $booking->occupiedTable->time;
         })->map(function ($timeBookings) {
             return $timeBookings->groupBy(function ($booking) {
-                return $booking->occupiedTable->table_id;
-            })->map(function ($tableBookings) {
-                return $tableBookings->count();
+                // Group by table capacity instead of table_id
+                // Use getRelation to explicitly get the relationship model
+                $tableModel = $booking->occupiedTable->getRelation('table');
+                return (string) $tableModel->capacity;
+            })->map(function ($capacityBookings) {
+                // Count how many tables of this capacity are booked
+                return $capacityBookings->count();
             })->toArray();
         })->toArray();
     }
