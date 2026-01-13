@@ -108,7 +108,7 @@ class Booking extends Model
 
     /**
      * Get all booked times for a specific date with table information
-     * Returns bookings grouped by time, then by table capacity
+     * Returns bookings with both capacity counts and specific table IDs
      */
     public static function getBookedTimesForDate(string $date): array
     {
@@ -118,24 +118,39 @@ class Booking extends Model
             ->with(['occupiedTable.table'])
             ->get();
 
-        return $bookings->filter(function ($booking) {
+        $filteredBookings = $bookings->filter(function ($booking) {
             // Filter out bookings without occupied table or table data
             return $booking->occupiedTable
                 && $booking->occupiedTable->relationLoaded('table')
                 && $booking->occupiedTable->table !== null;
-        })->groupBy(function ($booking) {
-            return $booking->occupiedTable->time;
-        })->map(function ($timeBookings) {
-            return $timeBookings->groupBy(function ($booking) {
-                // Group by table capacity instead of table_id
-                // Use getRelation to explicitly get the relationship model
+        });
+
+        $result = [];
+
+        foreach ($filteredBookings->groupBy(function ($booking) {
+            // Format time as H:i (remove seconds)
+            return substr($booking->occupiedTable->time, 0, 5);
+        }) as $time => $timeBookings) {
+            $result[$time] = [
+                'capacities' => [],
+                'tableIds' => []
+            ];
+
+            // Group by capacity for counts
+            foreach ($timeBookings->groupBy(function ($booking) {
                 $tableModel = $booking->occupiedTable->getRelation('table');
                 return (string) $tableModel->capacity;
-            })->map(function ($capacityBookings) {
-                // Count how many tables of this capacity are booked
-                return $capacityBookings->count();
-            })->toArray();
-        })->toArray();
+            }) as $capacity => $capacityBookings) {
+                $result[$time]['capacities'][$capacity] = $capacityBookings->count();
+            }
+
+            // Collect actual booked table IDs
+            foreach ($timeBookings as $booking) {
+                $result[$time]['tableIds'][] = $booking->occupiedTable->table_id;
+            }
+        }
+
+        return $result;
     }
 
     /**

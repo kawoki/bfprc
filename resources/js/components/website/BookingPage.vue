@@ -24,7 +24,7 @@ import Textarea from '../ui/textarea/Textarea.vue';
 updateTheme('light');
 
 // State for booked times with seat information
-const bookedTimes = ref<Record<string, Record<string, number>>>({});
+const bookedTimes = ref<Record<string, { capacities: Record<string, number>; tableIds: number[] }>>({});
 const isLoadingTimes = ref(false);
 
 // Generate all possible time slots
@@ -65,31 +65,39 @@ const isTimeSlotAvailable = (time: string) => {
     if (!isTimeSlotInFuture(time)) return false;
     if (!bookedTimes.value[time]) return true;
 
-    // Get all table IDs that are booked at this time
-    const bookedTableIds = Object.keys(bookedTimes.value[time]);
-    // Check if there's at least one table not in the booked list
-    return props.tables.some((table) => !bookedTableIds.includes(String(table.id)));
+    // Check if any capacity has available tables
+    const timeData = bookedTimes.value[time];
+    return Object.keys(tableCapacities.value).some((capacity) => {
+        const totalTables = tableCapacities.value[capacity] || 0;
+        const bookedTables = timeData?.capacities?.[capacity] || 0;
+        return bookedTables < totalTables;
+    });
 };
 
 // Get the number of available tables for a time slot
 const getAvailableTablesCount = (time: string) => {
     if (!bookedTimes.value[time]) return props.tables.length;
 
-    const bookedTableIds = Object.keys(bookedTimes.value[time]);
-    return props.tables.filter((table) => !bookedTableIds.includes(String(table.id))).length;
+    const timeData = bookedTimes.value[time];
+
+    // Calculate total available by checking each capacity
+    let availableCount = 0;
+    Object.keys(tableCapacities.value).forEach((capacity) => {
+        const totalTablesWithCapacity = tableCapacities.value[capacity] || 0;
+        const bookedTablesWithCapacity = timeData?.capacities?.[capacity] || 0;
+        const available = totalTablesWithCapacity - bookedTablesWithCapacity;
+        availableCount += available;
+    });
+    return availableCount;
 };
 
 // Check if a table size is available for a specific time
 const isTableSizeAvailable = (time: string, seats: string) => {
     if (!isTimeSlotInFuture(time)) return false;
+    if (!bookedTimes.value[time]) return true;
 
-    // Initialize an empty object for the time if it doesn't exist
-    if (!bookedTimes.value[time]) {
-        bookedTimes.value[time] = {};
-    }
-
-    const timeBookings = bookedTimes.value[time];
-    const currentBookings = timeBookings[seats] || 0;
+    const timeData = bookedTimes.value[time];
+    const currentBookings = timeData?.capacities?.[seats] || 0;
     const capacity = tableCapacities.value[seats] || 0;
     return currentBookings < capacity;
 };
@@ -192,6 +200,10 @@ watch(selectedDate, async (newDateString) => {
         const response = await axios.get(route('bookings.available-times', { date: newDateString }));
         bookedTimes.value = response.data.bookedTimes;
 
+        // Debug logging
+        console.log('Booked times received:', response.data.bookedTimes);
+        console.log('Table capacities:', tableCapacities.value);
+
         if (selectedTime.value && form.table_id) {
             if (!isTableAvailable(selectedTime.value, props.tables.find((t) => String(t.id) === form.table_id)!)) {
                 selectedTime.value = '';
@@ -227,8 +239,9 @@ const isTableAvailable = (time: string, table: Table) => {
     if (!isTimeSlotInFuture(time)) return false;
     if (!bookedTimes.value[time]) return true;
 
-    // Check if this specific table is booked at this time
-    return !bookedTimes.value[time][String(table.id)];
+    // Check if this specific table ID is in the booked list
+    const timeData = bookedTimes.value[time];
+    return !timeData?.tableIds?.includes(table.id);
 };
 
 const handleSubmit = () => {
@@ -303,13 +316,11 @@ const tableCapacities = computed(() => {
 // Add function to get available tables for a specific time
 const getAvailableTables = (time: string) => {
     if (!isTimeSlotInFuture(time)) return [];
+    if (!bookedTimes.value[time]) return props.tables;
 
-    return props.tables.filter((table) => {
-        const capacity = String(table.capacity);
-        const bookedCount = bookedTimes.value[time]?.[capacity] || 0;
-        const totalTables = tableCapacities.value[capacity] || 0;
-        return bookedCount < totalTables;
-    });
+    // Filter out tables that are in the booked tableIds list
+    const timeData = bookedTimes.value[time];
+    return props.tables.filter((table) => !timeData?.tableIds?.includes(table.id));
 };
 
 // Update watch for time changes to clear table_id
