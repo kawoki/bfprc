@@ -14,11 +14,23 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
+import {
+    CircleCheckIcon,
+    CircleSlashIcon,
+    MoreHorizontalIcon,
+} from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -354,6 +366,7 @@ const getStatusVariant = (booking: BookingData): 'default' | 'destructive' | 'ou
                                 <TableHead class="dark:text-gray-300">Proof</TableHead>
                                 <!-- <TableHead class="text-right dark:text-gray-300">Total</TableHead> -->
                                 <TableHead class="dark:text-gray-300">Status</TableHead>
+                                <TableHead class="dark:text-gray-300">Cancellation Reason</TableHead>
                                 <TableHead class="text-center dark:text-gray-300">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -400,22 +413,30 @@ const getStatusVariant = (booking: BookingData): 'default' | 'destructive' | 'ou
                                             {{ getBookingStatus(booking) }}
                                         </Badge>
                                     </TableCell>
+                                    <TableCell class="min-h-14 w-96 wrap-normal hover:line-clamp-none hover:h-auto">
+                                        {{ booking.cancellation_reason }}
+                                    </TableCell>
                                     <TableCell class="text-center">
                                         <div class="flex items-center justify-center gap-2">
-                                            <Button
-                                                v-if="!booking.cancelled_at && !booking.confirmed_at"
-                                                @click="openConfirmDialog(booking)"
-                                                class="inline-flex items-center justify-center rounded-md bg-green-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
-                                            >
-                                                Confirm
-                                            </Button>
-                                            <Button
-                                                v-if="!booking.cancelled_at"
-                                                @click="openCancelDialog(booking)"
-                                                class="inline-flex items-center justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
-                                            >
-                                                Cancel
-                                            </Button>
+                                            <DropdownMenu v-if="!booking.cancelled_at">
+                                                <DropdownMenuTrigger as-child>
+                                                    <Button variant="outline" size="icon" aria-label="More Options">
+                                                        <MoreHorizontalIcon />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" class="w-32">
+                                                    <DropdownMenuGroup>
+                                                        <DropdownMenuItem v-if="!booking.cancelled_at && !booking.confirmed_at" @click="openConfirmDialog(booking)" variant="success">
+                                                            <CircleCheckIcon />
+                                                            Confirm
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem v-if="!booking.cancelled_at" @click="openCancelDialog(booking)" variant="danger" >
+                                                            <CircleSlashIcon />
+                                                            Cancel
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuGroup>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </TableCell>
                                 </TableRow>

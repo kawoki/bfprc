@@ -7,7 +7,7 @@ import { DropdownMenuItem, type DropdownMenuItemProps, useForwardProps } from 'r
 const props = withDefaults(defineProps<DropdownMenuItemProps & {
   class?: HTMLAttributes['class']
   inset?: boolean
-  variant?: 'default' | 'destructive'
+  variant?: 'default' | 'destructive' | 'success' | 'danger'
 }>(), {
   variant: 'default',
 })
@@ -23,7 +23,16 @@ const forwardedProps = useForwardProps(delegatedProps)
     :data-inset="inset ? '' : undefined"
     :data-variant="variant"
     v-bind="forwardedProps"
-    :class="cn(`focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive-foreground data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/40 data-[variant=destructive]:focus:text-destructive-foreground data-[variant=destructive]:*:[svg]:!text-destructive-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4`, props.class)"
+    :class="cn(`focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive-foreground data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/40 data-[variant=destructive]:focus:text-destructive-foreground data-[variant=destructive]:*:[svg]:!text-destructive-foreground data-[variant=success]:text-green-600
+      data-[variant=success]:focus:bg-green-500/10
+      dark:data-[variant=success]:focus:bg-green-600/30
+      data-[variant=success]:focus:text-green-600
+      data-[variant=success]:*:[svg]:!text-green-600
+      data-[variant=danger]:text-red-600
+       data-[variant=danger]:focus:bg-red-500/10
+       dark:data-[variant=danger]:focus:bg-red-600/30
+       data-[variant=danger]:focus:text-red-600
+       data-[variant=danger]:*:[svg]:!text-red-600 [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4`, props.class)"
   >
     <slot />
   </DropdownMenuItem>
