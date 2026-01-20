@@ -174,6 +174,10 @@ class BookingController extends Controller
 
     public function confirm(Booking $booking)
     {
+        if (!$booking->proof_of_payment) {
+            return back()->withErrors(['error' => 'Cannot confirm booking without proof of payment.']);
+        }
+
         $booking->confirm();
 
         return back()->with('success', 'Booking confirmed successfully.');

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -18,10 +19,12 @@ class Booking extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'firstname',
         'lastname',
         'address',
         'phone_number',
+        'proof_of_payment',
         'total_amount',
         'confirmed_at',
         'cancelled_at',
@@ -167,5 +170,13 @@ class Booking extends Model
     public function occupiedTable(): MorphOne
     {
         return $this->morphOne(OccupiedTable::class, 'occupiable');
+    }
+
+    /**
+     * Get the user that owns the booking.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

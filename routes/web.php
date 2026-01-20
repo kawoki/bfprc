@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
+use App\Http\Controllers\Customer\MenuController as CustomerMenuController;
+use App\Http\Controllers\Customer\ReservationController as CustomerReservationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
@@ -22,7 +25,8 @@ Route::post('/booking', [BookingController::class, 'store'])->name('bookings.sto
 
 Route::get('/bookings/available-times', [BookingController::class, 'getAvailableTimes'])->name('bookings.available-times');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+// Admin Routes
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, '__invoke'])->name('dashboard');
 
     // Booking routes
@@ -51,6 +55,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/pending-orders', [PendingOrderController::class, 'store'])->name('pending_orders.store');
     Route::put('/pending-orders/{pendingOrder}/finalize', [PendingOrderController::class, 'finalize'])->name('pending_orders.finalize');
     Route::delete('/pending-orders/{pendingOrder}', [PendingOrderController::class, 'destroy'])->name('pending_orders.destroy');
+});
+
+// Customer Routes
+Route::middleware(['auth', 'verified', 'customer'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/dashboard', [CustomerDashboardController::class, '__invoke'])->name('dashboard');
+
+    // Customer Menu viewing
+    Route::get('/menu', [CustomerMenuController::class, 'index'])->name('menu');
+
+    // Customer Reservations
+    Route::get('/reservations', [CustomerReservationController::class, 'index'])->name('reservations.index');
+    Route::get('/reservations/create', [CustomerReservationController::class, 'create'])->name('reservations.create');
+    Route::post('/reservations', [CustomerReservationController::class, 'store'])->name('reservations.store');
+    Route::put('/reservations/{booking}/cancel', [CustomerReservationController::class, 'cancel'])->name('reservations.cancel');
+    Route::get('/reservations/available-times', [CustomerReservationController::class, 'getAvailableTimes'])->name('reservations.available-times');
 });
 
 require __DIR__.'/settings.php';

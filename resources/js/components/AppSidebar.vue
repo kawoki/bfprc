@@ -4,11 +4,15 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { Calendar, LayoutGrid, ShoppingCart, Utensils } from 'lucide-vue-next';
+import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
-const mainNavItems: NavItem[] = [
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+
+const adminNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: '/dashboard',
@@ -31,6 +35,32 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
+const customerNavItems: NavItem[] = [
+    {
+        title: 'Dashboard',
+        href: '/customer/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Menu',
+        href: '/customer/menu',
+        icon: Utensils,
+    },
+    {
+        title: 'Reservations',
+        href: '/customer/reservations',
+        icon: Calendar,
+    },
+];
+
+const mainNavItems = computed(() => {
+    return user.value?.role === 'customer' ? customerNavItems : adminNavItems;
+});
+
+const dashboardRoute = computed(() => {
+    return user.value?.role === 'customer' ? 'customer.dashboard' : 'dashboard';
+});
+
 const footerNavItems: NavItem[] = [];
 </script>
 
@@ -40,7 +70,7 @@ const footerNavItems: NavItem[] = [];
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="route('dashboard')">
+                        <Link :href="route(dashboardRoute)">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
