@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/bookings/past', [BookingController::class, 'past'])->name('bookings.past');
     Route::put('/bookings/{booking}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
     Route::put('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::post('/bookings/{booking}/payments', [BookingController::class, 'recordPayment'])->name('bookings.payments.store');
 
     // Menu Management
     Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');

@@ -117,13 +117,17 @@ class ReservationController extends Controller
         }
     }
 
-    public function cancel(Booking $booking)
+    public function cancel(Request $request, Booking $booking)
     {
         if ($booking->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        $booking->cancel();
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|max:500',
+        ]);
+
+        $booking->cancel($validated['cancellation_reason']);
 
         return back()->with('success', 'Reservation cancelled successfully!');
     }

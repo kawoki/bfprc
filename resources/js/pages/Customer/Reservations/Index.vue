@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import CancellationDialog from '@/components/booking/CancellationDialog.vue';
+import ProofOfPaymentModal from '@/components/booking/ProofOfPaymentModal.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -6,6 +8,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { CheckCircle, XCircle } from 'lucide-vue-next';
+import { ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -19,22 +22,40 @@ const props = defineProps<{
     reservations: Array<any>;
 }>();
 
-const cancelReservation = (id: number) => {
-    if (confirm('Are you sure you want to cancel this reservation?')) {
-        router.put(
-            route('customer.reservations.cancel', id),
-            {},
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success('Reservation cancelled successfully!');
-                },
-                onError: () => {
-                    toast.error('Failed to cancel reservation.');
-                },
+const reservationToCancel = ref<any>(null);
+const isCancelDialogOpen = ref(false);
+const showProofModal = ref(false);
+const proofImageUrl = ref<string | null>(null);
+
+const openCancelDialog = (reservation: any) => {
+    reservationToCancel.value = reservation;
+    isCancelDialogOpen.value = true;
+};
+
+const openProofModal = (url: string | null) => {
+    proofImageUrl.value = url;
+    showProofModal.value = true;
+};
+
+const cancelReservation = (reason: string) => {
+    if (!reservationToCancel.value) return;
+    router.put(
+        route('customer.reservations.cancel', reservationToCancel.value.id),
+        { cancellation_reason: reason },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Reservation cancelled successfully!');
+                isCancelDialogOpen.value = false;
+                reservationToCancel.value = null;
             },
-        );
-    }
+            onError: () => {
+                toast.error('Failed to cancel reservation.');
+                isCancelDialogOpen.value = false;
+                reservationToCancel.value = null;
+            },
+        },
+    );
 };
 
 const getStatusBadge = (reservation: any) => {
@@ -128,9 +149,24 @@ const getStatusBadge = (reservation: any) => {
                                 </div>
                             </div>
 
-                            <!-- Payment Proof Status -->
-                            <div v-if="reservation.proof_of_payment" class="mt-4">
-                                <Badge variant="success">✓ Proof of payment submitted</Badge>
+                            <!-- Payment Proof -->
+                            <div v-if="reservation.proof_of_payment_url" class="mt-4 flex items-center gap-3">
+                                <img
+                                    :src="reservation.proof_of_payment_url"
+                                    alt="Proof of Payment"
+                                    class="h-16 w-16 cursor-pointer rounded border object-cover hover:opacity-80"
+                                    @click="openProofModal(reservation.proof_of_payment_url)"
+                                />
+                                <div>
+                                    <Badge variant="success">✓ Proof of payment submitted</Badge>
+                                    <p class="mt-1 text-xs text-gray-500">Click image to view</p>
+                                </div>
+                            </div>
+
+                            <!-- Cancellation Reason -->
+                            <div v-if="reservation.cancellation_reason" class="mt-4 rounded-lg bg-red-50 p-3">
+                                <p class="text-sm font-medium text-red-800">Cancellation Reason:</p>
+                                <p class="text-sm text-red-700">{{ reservation.cancellation_reason }}</p>
                             </div>
                         </div>
 
@@ -142,7 +178,7 @@ const getStatusBadge = (reservation: any) => {
 
                             <Button
                                 v-if="!reservation.cancelled_at"
-                                @click="cancelReservation(reservation.id)"
+                                @click="openCancelDialog(reservation)"
                                 variant="destructive"
                                 class="mt-2"
                             >
@@ -163,4 +199,18 @@ const getStatusBadge = (reservation: any) => {
             </Card>
         </div>
     </AppLayout>
+
+    <CancellationDialog
+        :open="isCancelDialogOpen"
+        :booking-name="`${reservationToCancel?.firstname} ${reservationToCancel?.lastname}`"
+        :on-confirm="cancelReservation"
+        :on-cancel="
+            () => {
+                isCancelDialogOpen = false;
+                reservationToCancel = null;
+            }
+        "
+    />
+
+    <ProofOfPaymentModal :open="showProofModal" :image-url="proofImageUrl" :on-close="() => (showProofModal = false)" />
 </template>

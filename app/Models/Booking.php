@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Booking extends Model
 {
@@ -28,6 +30,7 @@ class Booking extends Model
         'total_amount',
         'confirmed_at',
         'cancelled_at',
+        'cancellation_reason',
     ];
 
     /**
@@ -40,11 +43,46 @@ class Booking extends Model
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'proof_of_payment_url',
+        'total_paid',
+        'remaining_balance',
+    ];
+
+    /**
      * Get the full name of the customer.
      */
     public function getFullNameAttribute(): string
     {
         return "{$this->firstname} {$this->lastname}";
+    }
+
+    /**
+     * Get the proof of payment URL.
+     */
+    public function getProofOfPaymentUrlAttribute(): ?string
+    {
+        return $this->proof_of_payment ? Storage::url($this->proof_of_payment) : null;
+    }
+
+    /**
+     * Get the total amount paid.
+     */
+    public function getTotalPaidAttribute(): float
+    {
+        return (float) $this->paymentRecords()->sum('amount');
+    }
+
+    /**
+     * Get the remaining balance.
+     */
+    public function getRemainingBalanceAttribute(): float
+    {
+        return (float) $this->total_amount - $this->total_paid;
     }
 
     /**
@@ -77,11 +115,12 @@ class Booking extends Model
     /**
      * Cancel the booking.
      */
-    public function cancel(): void
+    public function cancel(?string $reason = null): void
     {
         $this->update([
             'confirmed_at' => null,
             'cancelled_at' => now(),
+            'cancellation_reason' => $reason,
         ]);
     }
 
@@ -178,5 +217,13 @@ class Booking extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the payment records for the booking.
+     */
+    public function paymentRecords(): HasMany
+    {
+        return $this->hasMany(PaymentRecord::class);
     }
 }

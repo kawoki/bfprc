@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import BookingNav from '@/components/booking/BookingNav.vue';
+import CancellationDialog from '@/components/booking/CancellationDialog.vue';
+import ProofOfPaymentModal from '@/components/booking/ProofOfPaymentModal.vue';
+import ViewBookingDetailsDialog from '@/components/booking/ViewBookingDetailsDialog.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -11,6 +14,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -51,13 +55,20 @@ interface BookingData {
     firstname: string;
     lastname: string;
     phone_number: string;
+    address: string;
+    proof_of_payment: string | null;
+    proof_of_payment_url: string | null;
     total_amount: string;
     confirmed_at: string | null;
     cancelled_at: string | null;
+    cancellation_reason: string | null;
     created_at: string;
     updated_at: string;
     items: BookingItemData[];
     occupied_table: OccupiedTableInfo | null;
+    payment_records?: any[];
+    total_paid?: string;
+    remaining_balance?: string;
 }
 
 interface Props {
@@ -76,8 +87,12 @@ const getBookingStatus = (booking: BookingData): 'pending' | 'confirmed' | 'canc
 const searchQuery = ref('');
 const bookingToConfirm = ref<BookingData | null>(null);
 const bookingToCancel = ref<BookingData | null>(null);
+const selectedBooking = ref<BookingData | null>(null);
 const isConfirmDialogOpen = ref(false);
 const isCancelDialogOpen = ref(false);
+const showDetailsDialog = ref(false);
+const showProofModal = ref(false);
+const proofImageUrl = ref<string | null>(null);
 
 const filteredBookings = computed(() => {
     if (!searchQuery.value) {
@@ -131,6 +146,16 @@ const openCancelDialog = (booking: BookingData) => {
     isCancelDialogOpen.value = true;
 };
 
+const openDetailsDialog = (booking: BookingData) => {
+    selectedBooking.value = booking;
+    showDetailsDialog.value = true;
+};
+
+const openProofModal = (url: string | null) => {
+    proofImageUrl.value = url;
+    showProofModal.value = true;
+};
+
 const handleConfirm = () => {
     if (!bookingToConfirm.value) return;
     const bookingId = bookingToConfirm.value.id;
@@ -159,12 +184,12 @@ const handleConfirm = () => {
     );
 };
 
-const handleCancel = () => {
+const handleCancel = (reason: string) => {
     if (!bookingToCancel.value) return;
     const bookingId = bookingToCancel.value.id;
     router.put(
         route('bookings.cancel', { booking: bookingId }),
-        {},
+        { cancellation_reason: reason },
         {
             preserveScroll: true,
             onSuccess: () => {
@@ -174,6 +199,7 @@ const handleCancel = () => {
                 if (index !== -1) {
                     props.bookings[index].cancelled_at = new Date().toISOString();
                     props.bookings[index].confirmed_at = null;
+                    props.bookings[index].cancellation_reason = reason;
                 }
                 bookingToCancel.value = null;
             },
@@ -331,6 +357,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <TableHead class="dark:text-gray-300">Time</TableHead>
                                 <TableHead class="dark:text-gray-300">Table</TableHead>
                                 <TableHead class="dark:text-gray-300">Items</TableHead>
+                                <TableHead class="dark:text-gray-300">Proof</TableHead>
                                 <TableHead class="text-right dark:text-gray-300">Total</TableHead>
                                 <TableHead class="dark:text-gray-300">Status</TableHead>
                                 <TableHead class="text-center dark:text-gray-300">Actions</TableHead>
@@ -363,6 +390,17 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             <span class="text-xs text-gray-500 dark:text-gray-400">No items</span>
                                         </template>
                                     </TableCell>
+                                    <TableCell>
+                                        <div v-if="booking.proof_of_payment_url" class="flex items-center">
+                                            <img
+                                                :src="booking.proof_of_payment_url"
+                                                alt="Proof"
+                                                class="h-10 w-10 cursor-pointer rounded border object-cover hover:opacity-80"
+                                                @click="openProofModal(booking.proof_of_payment_url)"
+                                            />
+                                        </div>
+                                        <span v-else class="text-xs text-gray-500 dark:text-gray-400">No proof</span>
+                                    </TableCell>
                                     <TableCell class="text-right dark:text-gray-300">Php {{ parseFloat(booking.total_amount).toFixed(2) }}</TableCell>
                                     <TableCell>
                                         <Badge :variant="getStatusVariant(booking)">
@@ -371,26 +409,23 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     </TableCell>
                                     <TableCell class="text-center">
                                         <div class="flex items-center justify-center gap-2">
-                                            <button
-                                                v-if="getBookingStatus(booking) === 'pending'"
+                                            <Button @click="openDetailsDialog(booking)" variant="outline" size="sm"> View Details </Button>
+                                            <Button
+                                                v-if="!booking.cancelled_at && !booking.confirmed_at"
                                                 @click="openConfirmDialog(booking)"
-                                                class="inline-flex items-center justify-center rounded-md bg-green-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
+                                                size="sm"
+                                                class="bg-green-500 hover:bg-green-600"
                                             >
-                                                <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                </svg>
                                                 Confirm
-                                            </button>
-                                            <button
-                                                v-if="getBookingStatus(booking) !== 'cancelled'"
+                                            </Button>
+                                            <Button
+                                                v-if="!booking.cancelled_at"
                                                 @click="openCancelDialog(booking)"
-                                                class="inline-flex items-center justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
+                                                size="sm"
+                                                variant="destructive"
                                             >
-                                                <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
                                                 Cancel
-                                            </button>
+                                            </Button>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -428,27 +463,24 @@ const breadcrumbs: BreadcrumbItem[] = [
         </AlertDialogContent>
     </AlertDialog>
 
-    <AlertDialog :open="isCancelDialogOpen" @update:open="isCancelDialogOpen = $event">
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Are you sure you want to cancel this booking for {{ bookingToCancel?.firstname }} {{ bookingToCancel?.lastname }}? This action
-                    cannot be undone.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel
-                    @click="
-                        isCancelDialogOpen = false;
-                        bookingToCancel = null;
-                    "
-                    >Cancel</AlertDialogCancel
-                >
-                <AlertDialogAction @click="handleCancel" class="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-                    >Yes, cancel it</AlertDialogAction
-                >
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
+    <CancellationDialog
+        :open="isCancelDialogOpen"
+        :booking-name="`${bookingToCancel?.firstname} ${bookingToCancel?.lastname}`"
+        :on-confirm="handleCancel"
+        :on-cancel="
+            () => {
+                isCancelDialogOpen = false;
+                bookingToCancel = null;
+            }
+        "
+    />
+
+    <ViewBookingDetailsDialog
+        v-if="selectedBooking"
+        :open="showDetailsDialog"
+        :booking="selectedBooking"
+        :on-close="() => (showDetailsDialog = false)"
+    />
+
+    <ProofOfPaymentModal :open="showProofModal" :image-url="proofImageUrl" :on-close="() => (showProofModal = false)" />
 </template>

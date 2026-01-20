@@ -116,7 +116,7 @@ class BookingController extends Controller
     {
         $today = Carbon::now()->startOfDay();
         // Only get bookings that have an occupied_table for today's date
-        $bookings = Booking::with(['items.menu', 'occupiedTable.table'])
+        $bookings = Booking::with(['items.menu', 'occupiedTable.table', 'user', 'paymentRecords.recordedBy'])
             ->whereHas('occupiedTable', function ($query) use ($today) {
                 $query->where('date', $today->format('Y-m-d'));
             })
@@ -136,7 +136,7 @@ class BookingController extends Controller
     {
         $today = Carbon::now()->startOfDay();
         // Only get bookings that have an occupied_table for future dates
-        $bookings = Booking::with(['items.menu', 'occupiedTable.table'])
+        $bookings = Booking::with(['items.menu', 'occupiedTable.table', 'user', 'paymentRecords.recordedBy'])
             ->whereHas('occupiedTable', function ($query) use ($today) {
                 $query->where('date', '>', $today->format('Y-m-d'));
             })
@@ -146,6 +146,8 @@ class BookingController extends Controller
                 fn($booking) => $booking->occupiedTable?->time,
             ])
             ->values();
+            
+        // dd($bookings->toArray());
 
         return Inertia::render('Bookings/Index', [
             'bookings' => $bookings,
@@ -157,7 +159,7 @@ class BookingController extends Controller
     {
         $today = Carbon::now()->startOfDay();
         // Only get bookings that have an occupied_table for past dates
-        $bookings = Booking::with(['items.menu', 'occupiedTable.table'])
+        $bookings = Booking::with(['items.menu', 'occupiedTable.table', 'user', 'paymentRecords.recordedBy'])
             ->whereHas('occupiedTable', function ($query) use ($today) {
                 $query->where('date', '<', $today->format('Y-m-d'));
             })
@@ -183,14 +185,38 @@ class BookingController extends Controller
         return back()->with('success', 'Booking confirmed successfully.');
     }
 
-    public function cancel(Booking $booking)
+    public function cancel(Request $request, Booking $booking)
     {
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|max:500',
+        ]);
 
-        $booking->cancel();
+        $booking->cancel($validated['cancellation_reason']);
 
         // Potentially, if items have implications (e.g. pre-ordered stock), handle here.
         // For now, items remain associated for record-keeping but booking is cancelled.
 
         return back()->with('success', 'Booking cancelled successfully.');
+    }
+
+    public function recordPayment(Request $request, Booking $booking)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01|max:' . $booking->remaining_balance,
+            'payment_type' => 'required|in:deposit,partial,full_payment',
+            'payment_method' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $booking->paymentRecords()->create([
+            'amount' => $validated['amount'],
+            'payment_type' => $validated['payment_type'],
+            'payment_method' => $validated['payment_method'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'recorded_by' => auth()->id(),
+            'recorded_at' => now(),
+        ]);
+
+        return back()->with('success', 'Payment recorded successfully.');
     }
 }
