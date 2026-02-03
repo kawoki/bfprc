@@ -6,7 +6,9 @@ use App\Http\Controllers\Customer\MenuController as CustomerMenuController;
 use App\Http\Controllers\Customer\ReservationController as CustomerReservationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\Website\ContactUsController;
 use App\Http\Controllers\Website\MenuController as WebsiteMenuController;
+use App\Http\Controllers\Website\CateringController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PendingOrderController;
 use App\Models\MenuCategory;
@@ -24,6 +26,8 @@ Route::get('/', function () {
 Route::get('/booking', [BookingController::class, 'create'])->name('booking.create');
 Route::post('/booking', [BookingController::class, 'store'])->name('bookings.store');
 Route::get('/menus', WebsiteMenuController::class)->name('website.menus');
+Route::get('/catering', CateringController::class)->name('website.catering');
+Route::get('/contact-us', ContactUsController::class)->name('website.contact_us');
 
 Route::get('/bookings/available-times', [BookingController::class, 'getAvailableTimes'])->name('bookings.available-times');
 

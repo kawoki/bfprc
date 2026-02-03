@@ -1,17 +1,12 @@
 <script setup lang="ts">
+import CateringPage from '@/components/website/CateringPage.vue';
 import Footer from '@/components/website/Footer.vue';
 import Header from '@/components/website/Header.vue';
-import MenusPage from '@/components/website/MenusPage.vue';
-import { MenuCategory } from '@/types';
 import { Head } from '@inertiajs/vue3';
-
-const props = defineProps<{
-    menuCategories: MenuCategory[];
-}>();
 </script>
 
 <template>
-    <Head title="Menus">
+    <Head title="Catering">
         <link rel="preconnect" href="https://rsms.me/" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
@@ -19,7 +14,7 @@ const props = defineProps<{
         <!-- Header -->
         <Header />
 
-        <MenusPage :menu-categories="menuCategories" />
+        <CateringPage />
 
         <Footer />
     </div>

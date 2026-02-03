@@ -74,7 +74,7 @@ const scrollToCategory = (scrollId: string) => {
 </script>
 
 <template>
-    <div class="mt-14 min-h-screen bg-slate-50 pb-20 text-slate-900">
+    <div class="mt-20 min-h-screen bg-slate-50 pb-20 text-slate-900">
         <header class="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 w-full border-b backdrop-blur">
             <div class="container mx-auto flex h-16 items-center justify-between px-4">
                 <div class="flex items-center gap-2">
