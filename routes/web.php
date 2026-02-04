@@ -5,6 +5,7 @@ use App\Http\Controllers\Customer\DashboardController as CustomerDashboardContro
 use App\Http\Controllers\Customer\MenuController as CustomerMenuController;
 use App\Http\Controllers\Customer\ReservationController as CustomerReservationController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Website\ContactUsController;
 use App\Http\Controllers\Website\MenuController as WebsiteMenuController;
@@ -63,6 +64,10 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::post('/pending-orders', [PendingOrderController::class, 'store'])->name('pending_orders.store');
     Route::put('/pending-orders/{pendingOrder}/finalize', [PendingOrderController::class, 'finalize'])->name('pending_orders.finalize');
     Route::delete('/pending-orders/{pendingOrder}', [PendingOrderController::class, 'destroy'])->name('pending_orders.destroy');
+
+    // Inquiries
+    Route::get('/inquiry', [InquiryController::class, 'index'])->name('inquiry.index');
+    Route::put('/inquiry/{inquiry}', [InquiryController::class, 'markAs'])->name('inquiry.mark.as');
 });
 
 // Customer Routes

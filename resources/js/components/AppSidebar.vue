@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Calendar, LayoutGrid, ShoppingCart, Utensils } from 'lucide-vue-next';
+import { Calendar, LayoutGrid, MessageSquareDot, ShoppingCart, Utensils } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
@@ -32,6 +32,11 @@ const adminNavItems: NavItem[] = [
         title: 'Orders',
         href: '/order',
         icon: ShoppingCart,
+    },
+    {
+        title: 'Inquiries',
+        href: '/inquiry',
+        icon: MessageSquareDot,
     },
 ];
 
