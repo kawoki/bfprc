@@ -40,10 +40,7 @@ const props = defineProps<{
 
             <!-- Menu Categories -->
             <div v-if="props.categories.length > 0" class="space-y-8">
-                <Card
-                    v-for="category in props.categories"
-                    :key="category.id"
-                >
+                <Card v-for="category in props.categories" :key="category.id">
                     <CardHeader>
                         <CardTitle>{{ category.name }}</CardTitle>
                         <CardDescription v-if="category.description">
@@ -53,17 +50,11 @@ const props = defineProps<{
 
                     <CardContent>
                         <div v-if="category.menus.length > 0" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            <Card
-                                v-for="menu in category.menus"
-                                :key="menu.id"
-                                class="transition-all hover:shadow-md"
-                            >
+                            <Card v-for="menu in category.menus" :key="menu.id" class="transition-all hover:shadow-md">
                                 <CardHeader class="pb-3">
                                     <div class="flex items-start justify-between">
                                         <CardTitle class="text-base">{{ menu.name }}</CardTitle>
-                                        <Badge variant="default">
-                                            ${{ menu.price }}
-                                        </Badge>
+                                        <Badge variant="default"> Php {{ menu.price }} </Badge>
                                     </div>
                                     <CardDescription v-if="menu.description">
                                         {{ menu.description }}
@@ -72,9 +63,7 @@ const props = defineProps<{
                             </Card>
                         </div>
 
-                        <div v-else class="py-4 text-center text-sm text-muted-foreground">
-                            No items in this category yet
-                        </div>
+                        <div v-else class="text-muted-foreground py-4 text-center text-sm">No items in this category yet</div>
                     </CardContent>
                 </Card>
             </div>

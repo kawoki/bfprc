@@ -27,7 +27,8 @@ Route::get('/booking', [BookingController::class, 'create'])->name('booking.crea
 Route::post('/booking', [BookingController::class, 'store'])->name('bookings.store');
 Route::get('/menus', WebsiteMenuController::class)->name('website.menus');
 Route::get('/catering', CateringController::class)->name('website.catering');
-Route::get('/contact-us', ContactUsController::class)->name('website.contact_us');
+Route::get('/contact-us', [ContactUsController::class, 'index'])->name('website.contact_us.index');
+Route::post('/contact-us', [ContactUsController::class, 'store'])->name('website.contact_us.store');
 
 Route::get('/bookings/available-times', [BookingController::class, 'getAvailableTimes'])->name('bookings.available-times');
 

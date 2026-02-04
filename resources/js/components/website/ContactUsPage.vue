@@ -10,15 +10,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useForm } from '@inertiajs/vue3';
+import { toast, Toaster } from 'vue-sonner';
+import 'vue-sonner/style.css';
 
 // --- Form State ---
 const isLoading = ref(false);
 const isSuccess = ref(false);
+const errors = ref({
+    name: null,
+    email: null,
+    phone_number: null,
+    subject: null,
+    message: null,
+});
 
-const formData = ref({
+const form = useForm({
     name: '',
     email: '',
-    phone: '',
+    phone_number: '',
     subject: '',
     message: '',
 });
@@ -28,18 +38,24 @@ const handleSubmit = async () => {
     isLoading.value = true;
 
     // Simulate API call
-    setTimeout(() => {
-        isLoading.value = false;
-        isSuccess.value = true;
-
-        // Reset form after success
-        formData.value = { name: '', email: '', phone: '', subject: '', message: '' };
-
-        // Hide success message after 5 seconds
-        setTimeout(() => {
-            isSuccess.value = false;
-        }, 5000);
-    }, 1500);
+    form.post(route('website.contact_us.store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            form.reset();
+            toast.success('Success', {
+                description: "Your inquiry has been submitted. We'll get back to you within 24 hours",
+            });
+        },
+        onError: (response) => {
+            errors.value = response;
+            toast.error('Unable to submit', {
+                description: 'There was an error when submitting. Please try again.',
+            });
+        },
+        onFinish: () => {
+            isLoading.value = false;
+        },
+    });
 };
 
 const faqItems = [
@@ -160,34 +176,77 @@ const faqItems = [
                                 <div class="grid gap-4 md:grid-cols-2">
                                     <div class="space-y-2">
                                         <Label for="name">Your Name</Label>
-                                        <Input id="name" v-model="formData.name" placeholder="John Doe" required />
+                                        <div>
+                                            <Input
+                                                id="name"
+                                                v-model="form.name"
+                                                placeholder="John Doe"
+                                                required
+                                                :class="errors.name && 'outline-2 outline-red-400/75'"
+                                            />
+                                            <span v-if="errors.name" class="text-xs font-medium text-red-400">{{ errors.name[0] }}</span>
+                                        </div>
                                     </div>
                                     <div class="space-y-2">
                                         <Label for="email">Email Address</Label>
-                                        <Input id="email" type="email" v-model="formData.email" placeholder="john@example.com" required />
+                                        <div>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                v-model="form.email"
+                                                placeholder="john@example.com"
+                                                required
+                                                :class="errors.email && 'outline-2 outline-red-400/75'"
+                                            />
+                                            <span v-if="errors.email" class="text-xs font-medium text-red-400">{{ errors.email[0] }}</span>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="grid gap-4 md:grid-cols-2">
                                     <div class="space-y-2">
                                         <Label for="phone">Phone Number (Optional)</Label>
-                                        <Input id="phone" type="tel" v-model="formData.phone" placeholder="0912 345 6789" />
+                                        <div>
+                                            <Input
+                                                id="phone"
+                                                type="tel"
+                                                v-model="form.phone_number"
+                                                placeholder="0912 345 6789"
+                                                :class="errors.phone_number && 'outline-2 outline-red-400/75'"
+                                            />
+                                            <span v-if="errors.phone_number" class="text-xs font-medium text-red-400">{{
+                                                errors.phone_number[0]
+                                            }}</span>
+                                        </div>
                                     </div>
                                     <div class="space-y-2">
                                         <Label for="subject">Inquiry Type</Label>
-                                        <Input id="subject" v-model="formData.subject" placeholder="Catering, Private Order, etc." required />
+                                        <div>
+                                            <Input
+                                                id="subject"
+                                                v-model="form.subject"
+                                                placeholder="Catering, Private Order, etc."
+                                                required
+                                                :class="errors.subject && 'outline-2 outline-red-400/75'"
+                                            />
+                                            <span v-if="errors.subject" class="text-xs font-medium text-red-400">{{ errors.subject[0] }}</span>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="space-y-2">
                                     <Label for="message">Message</Label>
-                                    <Textarea
-                                        id="message"
-                                        v-model="formData.message"
-                                        placeholder="Tell us about your event (Date, Location, No. of Pax)..."
-                                        class="min-h-[150px]"
-                                        required
-                                    />
+                                    <div>
+                                        <Textarea
+                                            id="message"
+                                            v-model="form.message"
+                                            placeholder="Tell us about your event (Date, Location, No. of Pax)..."
+                                            class="min-h-[150px]"
+                                            required
+                                            :class="errors.message && 'outline-2 outline-red-400/75'"
+                                        />
+                                        <span v-if="errors.message" class="text-xs font-medium text-red-400">{{ errors.message[0] }}</span>
+                                    </div>
                                 </div>
 
                                 <div class="flex justify-end">
@@ -218,4 +277,5 @@ const faqItems = [
             </div>
         </div>
     </div>
+    <Toaster richColors />
 </template>
