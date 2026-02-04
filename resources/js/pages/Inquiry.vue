@@ -370,16 +370,12 @@ const getStatusColor = (status: string) => {
                         <Separator class="my-2" />
 
                         <div class="space-y-1">
-                            <label class="text-muted-foreground flex items-center gap-1 text-xs font-medium">
-                                <Phone class="size-3" /> Read at
-                            </label>
+                            <label class="text-muted-foreground flex items-center gap-1 text-xs font-medium"> Read at </label>
                             <div class="text-sm">{{ formatDateTime(selectedInquiry.read_at) }}</div>
                         </div>
 
                         <div class="space-y-1">
-                            <label class="text-muted-foreground flex items-center gap-1 text-xs font-medium">
-                                <Phone class="size-3" /> Replied at
-                            </label>
+                            <label class="text-muted-foreground flex items-center gap-1 text-xs font-medium"> Replied at </label>
                             <div class="text-sm">{{ formatDateTime(selectedInquiry.replied_at) }}</div>
                         </div>
                     </div>
