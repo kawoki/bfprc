@@ -132,6 +132,31 @@ class ReservationController extends Controller
         return back()->with('success', 'Reservation cancelled successfully!');
     }
 
+    public function uploadProof(Request $request, Booking $booking)
+    {
+        if ($booking->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($booking->cancelled_at || $booking->confirmed_at) {
+            return back()->withErrors(['proof_of_payment' => 'Proof cannot be uploaded for this reservation.']);
+        }
+
+        $request->validate([
+            'proof_of_payment' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ]);
+
+        if ($booking->proof_of_payment) {
+            \Storage::disk('public')->delete($booking->proof_of_payment);
+        }
+
+        $booking->update([
+            'proof_of_payment' => $request->file('proof_of_payment')->store('proofs', 'public'),
+        ]);
+
+        return back()->with('success', 'Proof of payment uploaded successfully!');
+    }
+
     public function getAvailableTimes(Request $request)
     {
         $request->validate([
