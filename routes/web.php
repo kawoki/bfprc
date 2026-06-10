@@ -82,6 +82,7 @@ Route::middleware(['auth', 'verified', 'customer'])->prefix('customer')->name('c
     Route::get('/reservations/create', [CustomerReservationController::class, 'create'])->name('reservations.create');
     Route::post('/reservations', [CustomerReservationController::class, 'store'])->name('reservations.store');
     Route::put('/reservations/{booking}/cancel', [CustomerReservationController::class, 'cancel'])->name('reservations.cancel');
+    Route::post('/reservations/{booking}/proof', [CustomerReservationController::class, 'uploadProof'])->name('reservations.proof');
     Route::get('/reservations/available-times', [CustomerReservationController::class, 'getAvailableTimes'])->name('reservations.available-times');
 });
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CancellationDialog from '@/components/booking/CancellationDialog.vue';
 import ProofOfPaymentModal from '@/components/booking/ProofOfPaymentModal.vue';
+import UploadProofDialog from '@/components/booking/UploadProofDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -26,10 +27,51 @@ const reservationToCancel = ref<any>(null);
 const isCancelDialogOpen = ref(false);
 const showProofModal = ref(false);
 const proofImageUrl = ref<string | null>(null);
+const reservationToUpload = ref<any>(null);
+const isUploadDialogOpen = ref(false);
+const isUploading = ref(false);
+const uploadError = ref<string | null>(null);
 
 const openCancelDialog = (reservation: any) => {
     reservationToCancel.value = reservation;
     isCancelDialogOpen.value = true;
+};
+
+const openUploadDialog = (reservation: any) => {
+    reservationToUpload.value = reservation;
+    uploadError.value = null;
+    isUploadDialogOpen.value = true;
+};
+
+const closeUploadDialog = () => {
+    isUploadDialogOpen.value = false;
+    reservationToUpload.value = null;
+    uploadError.value = null;
+};
+
+const uploadProof = (file: File) => {
+    if (!reservationToUpload.value) return;
+    isUploading.value = true;
+    uploadError.value = null;
+    router.post(
+        route('customer.reservations.proof', reservationToUpload.value.id),
+        { proof_of_payment: file },
+        {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Proof of payment uploaded successfully!');
+                closeUploadDialog();
+            },
+            onError: (errors) => {
+                uploadError.value = errors.proof_of_payment ?? 'Failed to upload proof.';
+                toast.error('Failed to upload proof.');
+            },
+            onFinish: () => {
+                isUploading.value = false;
+            },
+        },
+    );
 };
 
 const openProofModal = (url: string | null) => {
@@ -177,6 +219,14 @@ const getStatusBadge = (reservation: any) => {
                             </div>
 
                             <Button
+                                v-if="!reservation.proof_of_payment && !reservation.cancelled_at && !reservation.confirmed_at"
+                                @click="openUploadDialog(reservation)"
+                                class="mt-2"
+                            >
+                                Upload Receipt
+                            </Button>
+
+                            <Button
                                 v-if="!reservation.cancelled_at"
                                 @click="openCancelDialog(reservation)"
                                 variant="destructive"
@@ -213,4 +263,12 @@ const getStatusBadge = (reservation: any) => {
     />
 
     <ProofOfPaymentModal :open="showProofModal" :image-url="proofImageUrl" :on-close="() => (showProofModal = false)" />
+
+    <UploadProofDialog
+        :open="isUploadDialogOpen"
+        :processing="isUploading"
+        :error="uploadError"
+        :on-confirm="uploadProof"
+        :on-cancel="closeUploadDialog"
+    />
 </template>
